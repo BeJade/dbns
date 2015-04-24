@@ -1,0 +1,70 @@
+\documentclass[a4paper,11pt,runningheads]{llncs}
+
+\usepackage[margin=2.7cm]{geometry}
+
+\pdfpagewidth=210 true mm
+\pdfpageheight=297 true mm
+
+\usepackage[table]{xcolor}
+\definecolor{linkcolor}{rgb}{0.65,0,0}
+\definecolor{citecolor}{rgb}{0,0.65,0}
+\definecolor{urlcolor}{rgb}{0,0,0.65}
+\usepackage[breaklinks=true,colorlinks=true, backref=page, linkcolor=linkcolor, urlcolor=urlcolor, citecolor=citecolor]{hyperref}
+\usepackage{hyperref}
+
+%\usepackage{amsfonts,amsmath,amscd,amssymb,array}
+%\usepackage{algorithm, algpseudocode}
+%\usepackage{afterpage}
+%\usepackage{type1cm}
+%\renewcommand{\scriptsize}{\fontsize{9pt}{9pt}\selectfont}
+%\floatname{algorithm}{Listing}
+
+\input{macros}
+
+
+
+\begin{document}
+
+\titlerunning{Title here}
+\title{Title here}
+\authorrunning{C. Chuengsatiansup, V. Suppakitpaisarn}
+
+\author{
+Chitchanok Chuengsatiansup\inst{1}
+\thanks{This work was supported by the Netherlands Organisation for Scientific Research (NWO) under grant 639.073.005.}
+\and
+Vorapong Suppakitpaisarn\inst{2}
+}
+
+\institute{
+Department of Mathematics and Computer Science \\
+Technische Universiteit Eindhoven\\
+P.O. Box 513, 5600 MB Eindhoven, the Netherlands\\
+\email{c.chuengsatiansup@tue.nl}
+\and
+National Institute of Informatics\\
+2-1-2 Hitotsubashi, Chiyoda-ky, Tokyo, 101-8430, Japan\\
+\email{vorapong@nii.ac.jp}
+}
+
+\maketitle
+
+\begin{abstract}
+Abstract here
+
+\smallskip
+\textbf{Keywords:} 
+double-base number system, single-scalar multiplication, multi-scalar multiplication
+\end{abstract}
+
+\input{intro}
+\input{single}
+\input{optimal}
+\input{multi}
+\input{conclusion}
+
+\clearpage
+\bibliographystyle{plain}
+\bibliography{collection}
+
+\end{document}
