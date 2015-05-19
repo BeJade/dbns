@@ -1,6 +1,325 @@
-\section{Interleaving DBNS}
+\newpage
+\section{Interleaving Method}
+To compute multi-scalar multiplication, e.g. $[m]P_1+[n]P_2$,
+the simplest approach is to individually perform single-scalar multiplication
+for $[m]P_1$ and $[n]P_2$ then add those results together.
+If costs for computing $[m]P_1$ and $[n]P_2$ using double-and-add algorithm are
+$d_1$ doublings plus $a_1$ additions and $d_2$ doubling plus $a_2$ additions respectively,
+then the total cost for computing $[m]P_1 + [n]P_2$ is $d_1 + d_2$ doublings plus $a_1 + a_2 + 1$ additions.
 
-add text here
+Since the sum of $[m]P_1$ and $[n]P_2$ is needed, not the individual $[m]P_1$ and $[n]P_2$,
+it is possible to perform doubling together for both $m$ and $n$
+then followed by separate additions for $m$ and $n$.
+This way, the total cost of interleaving method is $max(d_1,d_2)$ doublings plus $a_1 + a_2 + 1$ additions.
 
-\subheading{This is subheading}
-add more text
+\example{Interleaving method for double-and-add} \\
+Let $m = m_\ell \dots m_1 m_0 = {100101}_2$, $n = n_\ell \dots n_1 n_0 = {011001}_2$ and $R = [m]P_1 + [n]P_2$.
+Let $m_i$ and $n_i$ be the $i$-bit of $m$ and $n$ respectively.
+Starting by initializing $R$ to $[m_5]P_1 + [n_5]P_2 = [1]P_1 + [0]P_2] = P_1$, then iterate $i$ from $4$ down to $0$.
+Each step perform $[2]R + [m_i]P_1 + [n_i]P_2$: \\
+$i=4; \quad R = 2(P_1) + P_2 = 2P_1 + P_2$ \\
+$i=3; \quad R = 2(2P_1 + P_2) + P_2 = 4P_1 + 3P_2$ \\
+$i=2; \quad R = 2(4P_1 + 3P_2) + P_1 = 9P_1 + 6P_2$ \\
+$i=1; \quad R = 2(9P_1 + 6P_2) = 18P_1 + 12P_2$ \\
+$i=0; \quad R = 2(18P_1 + 12P_2) + P_1 + P_2 = 37P_1 + 25P_2$ \\
+
+In this Section, we propose two algorithms based on interleaving method,
+namely, interleaving signed sliding window and interleaving DBNS.
+The former is to combine signed sliding window with interleaving method.
+This algorithm is suitable for number represented in binary format.
+The latter is to combine constrained DBNS with interleaving method.
+This algorithm is suitable for number represented in binary-ternary format.
+
+
+
+\subheading{Interleaving signed sliding window} \\
+\label{sec:signedslide}
+The speed leading algorithm for computing single-scalar multiplication is signed sliding window.
+The idea of signed sliding window is to precompute a set $S = \{[1]P, [3]P, [5]P, \dots, [2^{\omega}-1]P\}$ where $\omega$ is the window size.
+When scanning bits, instead of proceeding one bit and one doubling at a time,
+now proceeding until the next non-zero bit is found, i.e., perform consecutive doublings,
+then perform single addition $[c]P$ from set $S$ where $c$ is the longest consecutive bits within length $\omega$
+starting from that non-zero bit and also ending with non-zero bit.
+
+In this Subsection, we explain how signed sliding window can be extended to compute multi-scalar multiplication combining with interleaving method.
+The algorithm is very straightforward.  Let use the same example of computing $[m]P_1 + [n]P_2$.
+Similar to the interleaving method, doubling is performed on both $m$ and $n$ while addition is performed individually for $m$ and $n$.
+However, we allow addition from precompute set $S_1 = \{[1]P_1, [3]P_1, \dots, [2^{\omega}-1]P_1\}$
+and set $S_2 = \{[1]P_2, [3]P_2, \dots, [2^{\omega}-1]P_2\}$.
+The searching process to find consecutive bits within length $\omega$ starting and ending with non-zero is perform in a similar manner as the sliding window.
+
+Let ${\it{FindIndex}}(b,p)$ be a function performing a sliding window of width $\omega$ scanning a bit string $b$ from position $p$ to the right.
+This function returns positions $i$ and $j$ closest to $p$ where $b_i$ and $b_j$ are 1.
+The difference between $i$ and $j$, namely, $i-j$ must not exceed the window width $\omega$.
+The value $i$ and $j$ may be the same if there is only one bit set within the width $\omega$.
+
+To compute $[m]P_1 + [n]P_2$, $R$ is initialized to $0$ and function $FindIndex$ is called twice for $m$ and $n$.
+Each bit in both $m$ and $n$ are scanned from left to right start at position $k = min(j_1,j_2)$ together with double $R$.
+If $k$ is equal to $j_1$, then ${(m_{i_1},\dots,m_{{j_1}+1},m_{j_1})}_2$ is also addition to $R$ and $FindIndex(m,j_1-1)$ is called.
+Similar to the case of $k$ equals $j_2$.
+The algorithm is shown in Algorithm~\ref{interleaveSlidingAlgo}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Algorithm
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{algorithm}
+\caption{Interleaving signed sliding window}
+\begin{algorithmic}
+	\Require Points $P_1,P_2$, sets $S_1=\{3P_1,5P_1,\dots,[2^{\omega}-1]P_1\}$,$S_2=\{3P_2,5P_2,\dots,[2^{\omega}-1]P_2\}$, \\
+		and scalars $m={(m_{\ell_1},\dots,m_1,m_0)}_2$, $n={(n_{\ell_2},\dots,n_1,n_0)}_2$
+	\Ensure Multi-scalar multiplication computing $[m]P_1 + [n]P_2$
+	\Statex
+	\State Initialize $R \gets 0$
+	\State $(i_1,j_1)$ $\gets$ $FindIndex(m,\ell_1)$		\Comment{$FindIndex(b,p)$ returns ($i,j$) where $p {\ge} i {\ge} j, i{-}j {\le} \omega$ and $b_i{,}b_j {=} 1$}
+	\State $(i_2,j_2)$ $\gets$ $FindIndex(n,\ell_2)$
+	\If{$j_1 < j_2$} \State $k \gets j_1$
+	\Else \State $k \gets j_2$
+	\EndIf
+	\While {$k$ $<$ len}			\Comment{len = maximum bit-length of $n_1$ and $n_2$}
+		\State $R$ $\gets$ $[2]R$
+		\If {$k = j_1$}
+			\State Set $u$ $\gets$ ${(m_{i_1},\dots,m_{j_1+1},m_{j_1})}_2$
+			\State $R$ $\gets$ $R + [u]P_1$		\Comment{$[u]P_1$ obtained from precomputation set $S_1$}
+			\State $(i_1,j_1)$ $\gets$ $FindIndex(m,j_1{-}1)$
+		\EndIf
+		\If {$k = j_2$}
+			\State Set $u$ $\gets$ ${(n_{i_2},\dots,n_{j_2+1},n_{j_2})}_2$
+			\State $R$ $\gets$ $R + [u]P_2$		\Comment{$[u]P_2$ obtained from precomputation set $S_2$}
+			\State $(i_2,j_2)$ $\gets$ $FindIndex(n,j_2{-}1)$
+		\EndIf
+		\State $k$ $\gets$ $k + 1$
+	\EndWhile
+	\\ \Return $[m]P_1 + [n]P_2$
+\end{algorithmic}
+\label{interleaveSlidingAlgo}
+\end{algorithm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\example{Interleaving signed sliding window} \\
+Let $m = m_\ell \dots m_1 m_0 = {100101}_2$, $n = n_\ell \dots n_1 n_0 = {011001}_2$, $R = [m]P_1 + [n]P_2$, and $\omega = 3$.
+Let $m_{i_1,j_1}$ and $n_{i_2,j_2}$ be $m_{i_1} m_{i_1-1} \dots m_{j}$ and $n_{i_2} n_{i_2-1} \dots n_{j_2}$ respectively.
+Scanning from $m_\ell$ and find $m_{i_1,j_1}$ such that $m_{i_1} = m_{j_1} = 1$ and $i_1 - j_1 \le \omega$.
+All so do the same with $n$.
+In this example, $m_{i_1,j_1} = m_{5,5}$ and $n_{i_2,j_2} = n_{4,3}$.
+Because $j_1 > j_2$, $R$ is initialized to $[m_{5,5}]P_1 = P_1$
+Then iterate $k$ from $4$ down to $0$.
+Each step perform $[2]R$, if $j_1 = i$ add $[m_{i_1,j_1}]P_1$, if $j_2 = i$ add $[n_{i,j_2}]P_2$: \\
+$k=4; \quad R = 2(P_1) = 2P_1$ \\
+$k=3; \quad R = 2(2P_1)= 4P_1$ \\
+$k=2; \quad R = 2(4P_1) + 3P_2 = 9P_1 + 6P_2$ \\
+$k=1; \quad R = 2(9P_1 + 6P_2) = 18P_1 + 12P_2$ \\
+$k=0; \quad R = 2(18P_1 + 12P_2) + P_1 + P_2 = 37P_1 + 25P_2$ \\
+
+
+To illustrate the performance of this interleaving signed sliding window algorithm,
+we conducted experiments using randomly chosen $10000$ pairs of integers $m$ and $n$ per each bit range 192, 256, 320, 384, 448, and 512.
+We tried different window widths range from $0$ to $10$.
+The performance is measured by the number of multiplication ($N_M$) required to compute $[m]P_1 + [n]P_2$.
+We use mixed coordinate systems, namely, projective twisted Edwards and extend twisted Edwards with $a=-1$
+in order to gain speed from both doubling and addition.
+With this curve choice, a doubling takes $3\mul + 4\sqr$, a regular addition takes $8\mul$, and a mixed addition takes $7\mul$
+where $\mul$ and $\sqr$ denote field multiplication and field squaring respectively.
+We also use a common assumption that $\sqr \approx 0.8\mul$.
+Note that we perform conversion in order to make precomputations in affine so that the mixed addition formulas can be used.
+The cost displays in Table~\ref{signedslideTable} does include the cost of precomputation but exclude the cost of conversion.
+The notation {$\mathcal{\#P}$} denotes the number of precomputation points.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[h]
+\centering
+\begin{tabular}{|C{0.1\textwidth}| *6{C{0.06\textwidth} C{0.06\textwidth}|} }
+%\begin{tabularx}{\textwidth}{|X| *6{X X|}}
+\toprule
+%\hline
+\multirow{2}{*}{width $\omega$}
+	&\multicolumn{2}{c|}{192-bit}
+		&\multicolumn{2}{c|}{256-bit}
+			&\multicolumn{2}{c|}{320-bit}
+				&\multicolumn{2}{c|}{384-bit}
+					&\multicolumn{2}{c|}{448-bit}
+						&\multicolumn{2}{c|}{512-bit} \\
+	&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+		&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+			&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+				&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+					&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+						&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$} \\
+\midrule
+\input{table_signedslide}
+%\hrule
+\bottomrule
+\multicolumn{13}{c}{}
+%\end{tabularx}
+\end{tabular}
+\caption{Number of multiplications and precomputation points for different window widths to compute double-scalar multiplication using interleaving signed sliding window}
+\label{signedslideTable}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\subheading{Interleaving DBNS} \\
+In cases that tripling operation is also allowed, scalars can be represented using $\{2-3\}$ Double-Base Number System (DBNS).
+$$n = \Sigma^{\ell}_{i=1} c_i 2^{a_i}3^{b_i}$$
+The main advantage of DBNS is that there are fewer terms in the number expansion compared to binary representation.
+However, the main drawback of DBNS is that scalar multiplication cannot be performed using Hornor-like method.
+Therefore, the cost of doubling is at least $max(a_i)$.  Similarly, the cost of tripling is at least $max(b_i)$.
+In \cite{DIM05}, a restrictive DBNS called {\it{double-base chain}} (DBC) was introduced.
+Exponents $a_i$ and $b_i$ in the expansion can no long be freely chosen and have to obey the restrictions
+$a_\ell \ge a_{\ell-1)} \ge \cdots \ge a_1$ and $b_\ell \ge b_{\ell-1} \ge \cdots \ge b_1$.
+These extra conditions on the exponents increase the number of terms in the expansion.
+With these restrictions, Hornor-like method can be applied to DBC when computing scalar multiplication, e.g.,
+$[841232]P = [3]([3]([3]([2^13^3]([2^63^2]P+P)-P)-P)+P)-P$.
+Unlike DBNS, the cost of doubling and tripling for DBC is guaranteed to be at most $max(a_i)$ and $max(b_i)$.
+
+In \cite{MH09}, M\'eloni and Hasan proposed an algorithm using DBNS by precomputing a set containing power of $2$ and
+performing scalar multiplication using Hornor-like method on power of $3$.
+The drawback of this algorithm is the amount of precomputation points.
+
+Inspried by that idea, we took a similar approach of using DBNS and try to make it applicable for Hornor-like method.
+Instead of forcing both exponents $a_i$ and $b_i$ to be in decreasing order,
+we force only exponent $a_i$ to be in decreasing order but force exponent $b_i$ to not exceed a parameter $b^{max}$.
+In other words, the restriction becomes
+$a_\ell \ge a_{\ell-1} \ge \cdots \ge a_1$ (same as DBC) and $b_1,b_2,\dots,b_\ell \le m$.
+This way, Hornor-like method can now applied to exponent $a_i$.
+
+\example{Apply Hornor-like method to DBNS on single exponent to compute scalar multiplication} \\
+$[983828]P = [2^43^{10}]P - [2^23^4]P + [2^13^9]P + [2^1]P$ \\
+$\phantom{[983828]P} = [2]([2^33^{10}]P - [2^13^4]P + [3^9]P + P)$ \\
+$\phantom{[983828]P} = [2]([2]([2^23^{10}]P - [3^4]P) + [3^9]P + P)$ \\
+Note that $[3^4]P, [3^9]P, [3^{10}]P$ need to be precomputed. \\
+
+In this Subsection, we explain how to combine the new restriction DBNS with the interleaving method to compute multi-scalar multiplication.
+The essential part to compute $[m]P_1 + [n]P_2$ giving $b^{max}$ a bound on maximum power of 3 is find a good $\{2,3\}$ DBNS for $m$ and $n$.
+At each step, we find two approximations, namely, one closest $m$ and the other one closest to $n$.
+Then we choose the best one between those two the give the best approximation to both $m$ and $n$ and subtract from them.
+Keep iterating these steps until $m$ and $n$ reach $0$.
+This algorithm requires precomputation of $2 \times b^{max}$ points using $2 \times b^{max}$ triplings.
+The main computation consists of only doublings and additions.
+Algorithm~\ref{interleaveDBNSAlgo} shows the interleaving DBNS.
+
+\example{Generating chain of interleaving DBNS} \\
+Let $m = 554627$, $n = 748556$ and $b^{max} = 5$.
+Let $(a_i,b_i)$ where $b_i \le 5$ make $2^{a_i}3^{b_i}$ the best approximation of $m$ and $n$ and step $i$. \\
+$(a_0,b_0) = (18,1)$;		$\quad n\phantom{m} = \phantom{-}748556			- 2^{18}3^{1}		= -37876$ \\
+$(a_1,b_1) = (19,0)$;		$\quad m\phantom{n} = \phantom{-}554627			- 2^{19}3^{0}		= \phantom{-}30339$ \\
+$(a_2,b_2) = (12,2)$;		$\quad n\phantom{m} = -37876\phantom{0}			+ 2^{12}3^{2}		= -1012$ \\
+$(a_3,b_3) = (\phantom{0}7,5)$; $\quad m\phantom{n} = \phantom{-}30339\phantom{0}	- 2^{\phantom{0}7}3^{5} = -765$ \\
+$(a_4,b_4) = (10,0)$;		$\quad n\phantom{m}=  -1012\phantom{00}			+ 2^{10}3^{0}		= \phantom{-}12$ \\
+$(a_5,b_5) = (\phantom{0}8,1)$; $\quad m\phantom{n}=  -765\phantom{000}			+ 2^{\phantom{0}8}3^{1} = \phantom{-}3$ \\
+$(a_6,b_6) = (\phantom{0}2,1)$; $\quad n\phantom{m}= \phantom{-}12\phantom{0000}	- 2^{\phantom{0}2}3^{1} = \phantom{-}0$ \\
+$(a_7,b_7) = (\phantom{0}0,1)$; $\quad m\phantom{n}= \phantom{-}3\phantom{00000}	- 2^{\phantom{0}0}3^{1} = \phantom{-}0$ \\
+Therefore, an interleaving DBNS chain for $[554627]P_1 + [748556]P_2$ is
+$[2^{18}3^{1}]P_2 + [2^{19}3^{0}]P_1 - [2^{12}3^{2}]P_2 + [2^{7}3^{5}]P_1 - [2^{10}]P_2 - [2^{8}3^{1}]P_1 + [2^{2}3^{1}]P_2 + [2^{0}3^{1}]P_1$.
+Apply Hornor-like method to the power of $2$, then $[554627]P_1 + [748556]P_2$ can be computed as
+$[2^2]([2^5]([2]([2^2]([2^2]([2^6]([2]P_1 + [3^1]P_2) - [3^2]P_2) - [3^0]P_2) - [3^1]P_1) + [3^5]P_1) + [3^1]P_2) + [3^1]P_1$.
+Note: points need to be precomputed are: $[3]P_1, [3^5]P_1, [3]P_2, [3^2]P_2$. \\
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Algorithm
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{algorithm}
+\caption{Interleaving DBNS}
+\begin{algorithmic}
+%	\Require Points $P_1,P_2$, sets $S_1=\{3P_1,9P_1,\dots,[3^{b_{max}}]P_1\}$,$S_2=\{3P_2,9P_2,\dots,[3^{b_{max}}]P_2\}$, \\
+%		and scalars $m={(m_{\ell_1},\dots,m_1,m_0)}_2$, $n={(n_{\ell_2},\dots,n_1,n_0)}_2$
+%	\Ensure Multi-scalar multiplication computing $[m]P_1 + [n]P_2$
+	\Require Scalars $m, n$ and a bound $b^{max}$ for the maximum power of $3$
+	\Ensure	A $\{2,3\}$-DBNS representing $m+n$ such that the maximum power of $3$ does not exceed $b^{max}$
+	\Statex
+	\State Initialize $R \gets 0$
+	\While {$m \ne 0$ or $n \ne 0$}
+		\State $(a,b) \gets FindTerm(m,n)$
+		\State $m \gets m - 2^a3^b$
+		\State $n \gets n - 2^a3^b$
+	\EndWhile
+	\\ \Return $[m]P_1 + [n]P_2$
+\end{algorithmic}
+
+\begin{algorithmic}
+	\Statex
+	\Statex
+%	\Require Scalar $r_1,r_2$ and a bound $b^{max}$ for the maximum power of $3$
+%	\Ensure A pair $(a,b)$ making $2^a3^b$ the best approximation of $m$ and $n$
+	\Statex
+	\State \bf{FindTerm($r_1,r_2$):}
+	%\State Initialize $r \gets 0$
+	\For {$0 \le a_i \le a^{max}$ and $0 \le b_i \le b^{max}$}
+		\State $d_1 \gets r_1 - 2^{a_i}3^{b_i}$
+		\If {$d_1 < min_1$}
+			\State $min_1 \gets d_1$
+			\State $pair_1 \gets (a_i,b_i)$
+		\EndIf
+		\State $d_2 \gets r_2 - 2^{a_i}3^{b_i}$
+		\If {$d_2 < min_2$}
+			\State $min_2 \gets d_2$
+			\State $pair_2 \gets (a_i,b_i)$
+		\EndIf
+	\EndFor
+	\If {$d_1 < d_2$}
+		$(a,b) \gets pair_1$
+	\Else
+		$(a,b) \gets pair_2$
+	\EndIf
+	\\ \Return $(a,b)$
+\end{algorithmic}
+
+\label{interleaveDBNSAlgo}
+\end{algorithm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Table~\ref{dbnsTable} shows the performance of the interleaving DBNS algorithm.
+In this experiment, we also tested different $b^{max}$ values from $0$ to $15$.
+The setting was similar to the experiment on interleaving signed sliding window ~\ref{sec:signedslide},
+namely, we used $10000$ randomly chosen pairs of integers $m$ and $n$ for bit range 192, 256, 320, 384, 448 an 512.
+We use the same mixed coordinate systems projective and extended twisted Edwards with $a=-1$.
+Since we use tripling for precomputation points which will be added, we need to output tripling in extend coordinates.
+Therefore tripling takes $11\mul + 3\sqr$.  Again, we use a common assumption that $\sqr \approx 0.8\mul$.
+Note again that we perform conversion in order to make precomputations in affine so that the mixed addition formulas can be used.
+The cost displays in Table~\ref{dbnsTable} does include the cost of precomputation but exclude the cost of conversion.
+The notation {$\mathcal{\#P}$} denotes the number of precomputation points.
+
+At 192- and 256-bit, $b^{max} = 6$ or having $12$ precomputation points gives the best performance.
+The $b^{max}$ value increase as the bit size increase, meaning that more space to keep precomputation points is required.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[h]
+\centering
+\begin{tabular}{|C{0.1\textwidth}| *6{C{0.06\textwidth} C{0.06\textwidth}|} }
+%\begin{tabularx}{\textwidth}{|X| *6{X X|}}
+\toprule
+%\hline
+\multirow{2}{*}{$b^{max}$}
+	&\multicolumn{2}{c|}{192-bit}
+		&\multicolumn{2}{c|}{256-bit}
+			&\multicolumn{2}{c|}{320-bit}
+				&\multicolumn{2}{c|}{384-bit}
+					&\multicolumn{2}{c|}{448-bit}
+						&\multicolumn{2}{c|}{512-bit} \\
+	&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+		&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+			&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+				&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+					&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$}
+						&\tiny{$N_M$}	&\tiny{$\mathcal{\#P}$} \\
+\midrule
+\input{table_dbns}
+%\hrule
+\bottomrule
+\multicolumn{13}{c}{}
+%\end{tabularx}
+\end{tabular}
+\caption{Number of multiplications and precomputation points for different $b^{max}$ to compute double-scalar multiplication using interleaving DBNS}
+\label{dbnsTable}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
