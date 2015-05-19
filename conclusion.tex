@@ -1,9 +1,7 @@
 \section{Conclusion}
 
-In this work, we analyzed the interleaving signed sliding window method.
-We also propose a new interleaving DBNS algorithm which is mostly better than
-interleaving signed sliding window method in terms of operation counts.
-The improvement range from 0.55\%-1.53\%.
+In literature, several works have been done to optimize and analyze the computation time of the multi-scalar multiplication $r_1P_1 + r_2P_2$ when the pre-computation points is in the form $P_1, 3P_1, 5P_1, \dots, (2h + 1)P_1, P_2, 3P_2, 5P_2, \dots, (2h + 1)P_2$. We show in this paper that those pre-computation points are not necessarily the best choice for the operation. Using the pre-computation points $P_1, 3^1P_1, 3^2P_1, \dots, 3^hP_1, P_2, 3^1P_2, 3^2P_2, \dots, 3^hP_2$,
+we can improve the computation time for 0.55\%-1.53\%.
 Our new algorithm also faster than the tree-based approach using double-base chain representation.
 The improvement range from 4.41\%-5.12\%.
 
