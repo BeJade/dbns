@@ -12,8 +12,10 @@ $$\sum_{(i,j) \in S_r} 2^I 3^j = r.$$
 Since both $S^{(1)}_{41} = \{(2,2), (2,0), (0,0)\}$ and $S^{(2)}_{41} = \{(5,0), (0,2)\}$ are the DBNS form of 41, we know that the DBNS form of some $r$ is not unique.
 
 
-Suppose that we have a DBNS form of $r$, $S_r$. Let $i_{\rm max}$ and $j_{\rm max}$ denote $\max\{ i' : (i',j') \in S_r \}$ and $\max\{ j' : (i',j') \in S_r \}$ respectively. The method calculates and stores the value of $3^i$ for all $j \in \{j’ : (i’, j’) \in S_r \}$ using point triples. Then, for each $i \in \{i’ : (i’, j’) \in S_r \}$, it calculate $d(i)P$ where $d(i) := \sum\limits_{j \in \{j’ : (i,j’) \in S_r\}} 3^j $ by point additions. By those pre-computation, the point $rP$ can be obtained by
-$$rP = 2\cdot \left( \dots \left( 2 \cdot \left( 2 \cdot d(i_{\rm max}) + d(i_{\mathrm{max} - 1}) \right) + d(i_{\mathrm{max} - 2}) \right) \dots \right) + d(0).$$
+Suppose that we have a DBNS form of $r$, $S_r$. Let $i_{\rm max}$ and $j_{\rm max}$ denote $\max\{ i' : (i',j') \in S_r \}$ and $\max\{ j' : (i',j') \in S_r \}$ respectively. The method calculates and stores the value of $3^iP$ for all $j \in \{j’ : (i’, j’) \in S_r \}$ using point triples. Then, for each $i \in \{i’ : (i’, j’) \in S_r \}$, it calculate $d(i)P$ where $d(i) := \sum\limits_{j \in \{j’ : (i,j’) \in S_r\}} 3^j $ by point additions. By those pre-computation, the point $rP$ can be obtained by
+$$rP = 2\cdot \left( \dots \left( 2 \cdot \left( 2 \cdot d(i_{\rm max})P + d(i_{\mathrm{max} - 1}P) \right) + d(i_{\mathrm{max} - 2})P \right) \dots \right) + d(0)P.$$
+For example, using $S_{41}^{(1)}$, we have $i_{\rm max} = j_{\rm max} = 2$, $d(2) = \left(3^2 + 3^0\right) = 10$, and $d(0) =  3^0 = 1$. The point $41P$ can be obtained by
+$$41P = 2 \cdot \left( 2 \cdot d(2)P  \right) + d(0)P = 2 \cdot \left( 2 \cdot \left( 10P \right)  \right) + P.$$
 The computation requires $j_{\rm max} - 1$ triples, $i_{\rm max} - 1$ doubles, and $|S_r| - 1$ additions. Since we have to store the points $d(i)P$ for all $i \in \{i : (i,j) \in S_r\}$, the number of the precomputation points can be as large as $|S_r|$ in the worst case.
 
 In \cite{dbns2}, the DBNS form of a given integer $r$ is found using a greedy algorithm. Let $\mathcal{P}_r := \left\{ 2^i3^j : i,j \in \mathbf{Z} \text{ and } 2^i3^j \leq r \right\}$. When $S^{(a)}_r$ is the DBNS form found the algorithm, the set can be described as follows:
@@ -40,6 +42,6 @@ It is possible that $S^*_r$ is not a DBNS form that can optimize our computation
 
 We note that the time and memory consumption of our dynamic algorithm do not increase the cost of the multi-scalar multiplication. In most of cryptographic protocol, the scalars $r_1$ and $r_2$ are usually a private or public key. Generally, we perform several multi-scalar multiplications on embedded system using the same $r_1$ and $r_2$, after we generated those numbers on a personal computer. Therefore, it is reasonable to take time and memory to find the best DBNS form of $r_1$ and $r_2$ during their generation.
 
-Motivated by the method in \cite{analysisMethod}, we propose an analysis method that can analyze the average number of point additions in the optimal DBNS-based multi-scalar multiplication. Given the same number of pre-compuation points, the analysis shows that our method requires much less point additions compared to the interleaving method or the enlarged digit set.
+Motivated by the method in \cite{analysisMethod}, we propose an analysis method that can analyze the average number of point additions in the optimal DBNS-based multi-scalar multiplication. Given the same number of pre-compuation points, the analysis shows that our method requires much less point additions compared to the interleaving method with fractional windows \cite{fractional} or the enlarged digit set \cite{analysisMethod}.
 
- 
+One might think that our algorithm is merely a double-and-add technique with a digit set $\left\{0, \pm 3^0, \pm 3^1, \dots, \pm 3^{j_{\rm max}} \right\}$. However, our method is different from that technique. In the technique, only one point addition will be performed between two sets of point doubles, while more than one point additions are allowed to perform between those two sets.
