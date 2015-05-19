@@ -1,9 +1,10 @@
 \section{Interleaving Method}
+\label{sec:interleaving}
 To compute multi-scalar multiplication, e.g. $[m]P_1+[n]P_2$,
 the simplest approach is to individually perform two single-scalar multiplications,
 one for $[m]P_1$ and one for$[n]P_2$, then add those results together.
 If the cost for computing single-scalar multiplication using double-and-add algorithm
-for $[m]P_1$ is $d_1$ doublings plus $a_1$ additions and for $[n]P_2$ is $d_2$ doubling plus $a_2$ additions,
+for $[m]P_1$ is $d_1$ doublings plus $a_1$ additions and for $[n]P_2$ is $d_2$ doublings plus $a_2$ additions,
 it is easy to see that the total cost for computing $[m]P_1 + [n]P_2$ is $d_1 + d_2$ doublings plus $a_1 + a_2 + 1$ additions.
 
 Since what needed to be computed is the sum of $[m]P_1$ and $[n]P_2$, not the individual $[m]P_1$ and $[n]P_2$,
@@ -25,12 +26,10 @@ $i=2; \quad R = 2(4P_1 + 3P_2) + [1]P_1 = 9P_1 + 6P_2$ \\
 $i=1; \quad R = 2(9P_1 + 6P_2) = 18P_1 + 12P_2$ \\
 $i=0; \quad R = 2(18P_1 + 12P_2) + [1]P_1 + [1]P_2 = 37P_1 + 25P_2$ \\
 
-In this Section, we introduce two algorithms based on the interleaving method,
-namely, interleaving signed sliding window and interleaving Double-Base Number System (DBNS).
-The former is to combine signed sliding window with interleaving method.
-This algorithm is suitable for number represented in binary format.
-The latter is to combine constrained DBNS with interleaving method.
-This algorithm is suitable for number represented in binary-ternary format.
+In this Section, we analyze the interleaving method on signed sliding window \cite{interleaving}
+and introduce an algorithm based on this interleaving method but combine with Double-Base Number System (DBNS).
+The interleaving method on signed sliding window is suitable for number represented in binary format,
+while the interleaving method combining constrained DBNS is suitable for number represented in binary-ternary format.
 
 
 
@@ -44,16 +43,16 @@ From that non-zero bit and within the window width $\omega$, choosing the larges
 Then repeat the process of (consecutive) doubling(s) and (single) addition until the last bit is reached.
 Note that the main advantage of this method is that it allows many bits (up to $\omega$ bits) to be added at one time.
 
-In this Subsection, we will explain how signed sliding window method can be applied to compute multi-scalar multiplication combining with interleaving method.
+In this Subsection, we analyze how signed sliding window method can be applied to compute multi-scalar multiplication combining with interleaving method.
 The algorithm is very straightforward.  Let use the same example of computing multi-scalar multiplication of $[m]P_1 + [n]P_2$.
 Similar to the interleaving method, doubling is mutually performed for both $m$ and $n$ while addition is individually performed for $m$ and $n$.
-On top of that, we allow a number to be add to be chosen from precompute set $S_1 = \{[1]P_1, [3]P_1, \dots, [2^{\omega}-1]P_1\}$
-and set $S_2 = \{[1]P_2, [3]P_2, \dots, [2^{\omega}-1]P_2\}$.
-A selection of which number to be added is similar to the sliding window method that keep sliding and finding a number withing width $\omega$ and is in the precomputation sets.
+On top of that, a number to be added is allowed to be chosen from a precompute set $S_1 = \{[1]P_1, [3]P_1, \dots, [2^{\omega}-1]P_1\}$
+and a set $S_2 = \{[1]P_2, [3]P_2, \dots, [2^{\omega}-1]P_2\}$.
+A selection of which number to be added is similar to the sliding window method that keep sliding and finding a number within width $\omega$ and is in the precomputation sets.
 
 Let ${\it{FindIndex}}(b,p)$ be a function performing a sliding window of width $\omega$ scanning a bit string $b$ from position $p$ to the right.
-This function returns positions $i$ and $j$ closest to $p$ where $b_i$ and $b_j$ are 1 and $(b_i b_{i-1}\ dots b_j)$ is the largest in the precomputation set,
-meaning that he difference between $i$ and $j$, namely, $i-j$ must not exceed the window width $\omega$.
+This function returns positions $i$ and $j$ closest to $p$ where $b_i$ and $b_j$ are 1 and $(b_i b_{i-1} \dots b_j)$ is the largest in the precomputation set,
+meaning that the difference between $i$ and $j$, namely, $i-j$ must not exceed the window width $\omega$.
 The value $i$ and $j$ may be the same if there is only one bit set within the width $\omega$.
 
 Let $R$ keeps the result of $[m]P_1 + [n]P_2$.  The computation starts by initializing $R$ to $0$ and call function $FindIndex$ twice for $m$ and $n$
@@ -117,10 +116,10 @@ $k=1; \quad R = 2(8P_1 + 6P_2) = 16P_1 + 12P_2$ \\
 $k=0; \quad R = 2(16P_1 + 12P_2) + 5P_1 + P_2 = 37P_1 + 25P_2$ \\
 
 
-To illustrate the performance of this interleaving signed sliding window algorithm,
+To analyze the performance of this interleaving signed sliding window algorithm,
 we conducted experiments using randomly chosen $10000$ pairs of integers $m$ and $n$.
 We used various bit range, namely, 192, 256, 320, 384, 448, and 512.
-We also tried using different window widths range from $0$ to $10$.
+We also tried using different window widths range from $1$ to $10$.
 The performance is measured by the number of multiplication ($N_M$) required to compute $[m]P_1 + [n]P_2$.
 To gain the best speed from both doubling and addition, we use mixed coordinate systems,
 namely, projective twisted Edwards and extend twisted Edwards with $a=-1$
@@ -128,7 +127,7 @@ With this curve choice, a doubling takes $3\mul + 4\sqr$, a regular addition tak
 where $\mul$ and $\sqr$ denote field multiplication and field squaring respectively.
 See \cite{EFD} for more details on formulas.
 We also use a common assumption that $\sqr \approx 0.8\mul$.
-Note that we perform conversion in order to make precomputation points in affine so that a faster mixed addition can be used.
+Note that we perform conversion in order to make precomputation points into affine coordinates so that a faster mixed addition can be used.
 The cost displays in Table~\ref{signedslideTable} does include the cost of precomputation but exclude the cost of conversion.
 The notation {$\mathcal{\#P}$} denotes the number of precomputation points.
 
@@ -168,7 +167,7 @@ The notation {$\mathcal{\#P}$} denotes the number of precomputation points.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-We observed that the optimal window width $\omega = 5$.
+We observed that the optimal window width is $\omega = 5$.
 However, this width requires approximately 20-22 precomputation points on average
 which might cause troubles in limited memory environment.
 A reasonable choice of width would be $\omega = 4$ which still provides good performance
@@ -178,13 +177,14 @@ and only requires 10 precomputation points to be kept.
 
 \subheading{Interleaving DBNS} \\
 \label{sec:dbns}
-In case of tripling operation is also available in addition to doubling and addition operations,
-scalars can be represented using $\{2,3\}$ Double-Base Number System (DBNS)
+In case of tripling operation is also available besides doubling and addition operations,
+scalars can be represented using $\{2,3\}$-Double-Base Number System (DBNS)
 $$n = \Sigma^{\ell}_{i=1} c_i 2^{a_i}3^{b_i} \text{, where $c_i \in \{-1,1\}$ }.$$
 That is, terms in a number expansion consist of power of two and three.
 
 \example{Double-Base Number System} \\
 $542788 = 2^83^7 - 2^33^7 + 2^43^3 - 2^13^3 - 2$
+\\
 
 The main advantage of DBNS over binary representation is that the number of terms in the expansion is smaller.
 However, the main drawback of DBNS is that scalar multiplication cannot be performed using Horner-like method.
@@ -240,7 +240,7 @@ $(a_4,b_4) = (10,\phantom{0}0,\phantom{-}0,-1)$;			$\quad n\phantom{m}=  -1012\p
 $(a_5,b_5) = (\phantom{0}8,\phantom{0}1,-1,\phantom{-}0)$; 		$\quad m\phantom{n}=  -765\phantom{000}			+ 2^{\phantom{0}8}3^{1} = \phantom{-}3$ \\
 $(a_6,b_6) = (\phantom{0}2,\phantom{0}1,\phantom{-}0,\phantom{-}1)$; 	$\quad n\phantom{m}= \phantom{-}12\phantom{0000}	- 2^{\phantom{0}2}3^{1} = \phantom{-}0$ \\
 $(a_7,b_7) = (\phantom{0}0,\phantom{0}1,\phantom{-}1,\phantom{-}0)$; 	$\quad m\phantom{n}= \phantom{-}3\phantom{00000}	- 2^{\phantom{0}0}3^{1} = \phantom{-}0$ \\
-Therefore, an interleaving DBNS chain: \\
+Therefore, an interleaving DBNS chain resulted in: \\
 \\
 $[554627]P_1 + [748556]P_2 = [2^{18}3^{1}]P_2 + [2^{19}3^{0}]P_1 - [2^{12}3^{2}]P_2 \\
 \phantom{[554627]P_1 + [748556]P_2 =}
@@ -292,7 +292,7 @@ Note: points need to be precomputed are: $[3]P_1, [3^5]P_1, [3]P_2, [3^2]P_2$. \
 			\State $pair_2 \gets (a_i,b_i,0,sgn(r_2))$
 		\EndIf
 	\EndFor
-	\If {$min_1^2 + r_2^2 <  r_1^2 + min_2^2$}
+	\If {$(min_1)^2 + (r_2)^2 <  (r_1)^2 + (min_2)^2$}
 		$(a,b,c,d) \gets pair_1$
 	\Else
 		$(a,b,c,d) \gets pair_2$
@@ -325,19 +325,19 @@ Note: points need to be precomputed are: $[3]P_1, [3^5]P_1, [3]P_2, [3^2]P_2$. \
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-To show the performance of the interleaving DBNS algorithm,
+To illustrate the performance of our new interleaving DBNS algorithm,
 we conducted several experiments and summarized data in Table~\ref{dbnsTable}.
 We tested different $b^{max}$ values from $0$ to $15$.
-The setting of the experiment  was similar to the one on interleaving signed sliding window ~\ref{sec:signedslide},
+The setting of the experiment  was similar to the one on interleaving signed sliding window in Section~\ref{sec:signedslide},
 namely, we used $10000$ randomly chosen pairs of integers $m$ and $n$ for bit range 192, 256, 320, 384, 448 an 512.
 We use the same mixed coordinate systems projective and extended twisted Edwards with $a=-1$.
 
 We also used tripling formulas in this experiment.
-Since tripling is used for computing precomputation points which will be added,
+Since a tripling is used for computing precomputation points which will be added,
 outputs of tripling have to be in extend coordinates.
 Therefore tripling takes $11\mul + 3\sqr$.  Again, we use a common assumption that $\sqr \approx 0.8\mul$.
 See \cite{EFD} for more details on formulas.
-Note again that we perform conversion in order to make precomputation point in affine so that a faster mixed addition formulas can be used.
+Note again that we perform conversion in order to make precomputation point into  affine coordinates so that a faster mixed addition formulas can be used.
 The cost displays in Table~\ref{dbnsTable} does include the cost of precomputation but exclude the cost of conversion.
 The notation {$\mathcal{\#P}$} denotes the number of precomputation points.
 
@@ -370,7 +370,7 @@ The notation {$\mathcal{\#P}$} denotes the number of precomputation points.
 \multicolumn{13}{c}{}
 %\end{tabularx}
 \end{tabular}
-\caption{Number of multiplications and precomputation points for different $b^{max}$ to compute double-scalar multiplication using interleaving DBNS}
+\caption{Number of multiplications and precomputation points for different $b^{max}$ to compute multi-scalar multiplication using interleaving DBNS}
 \label{dbnsTable}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -383,10 +383,10 @@ in order to gain a good performance.
 
 \subheading{Comparison} \\
 
-In Subsection~\ref{sec:signedslide} we introduced interleaving signed sliding window,
-and in Subjection~\ref{sec:dbns} we introduced interleaving DBNS.
+In Subsection~\ref{sec:signedslide} we studied interleaving signed sliding window algorithm,
+and in Subsection~\ref{sec:dbns} we proposed a new interleaving DBNS algorithm.
 In each subsection we present the analysis for each algorithm separately.
-Therefore, in this Section we will compare results across different algorithms including comparison with previous work
+Therefore, in this Section we will compare results across different algorithms.
 
 Recall that we use mixed coordinates of projective and extend twisted Edwards with curve parameter $a$ equals $-1$ as a curve choice,
 because these coordinate systems provide the best number of multiplication counts.
@@ -402,15 +402,18 @@ we also present our result using operation cost on that coordinate system.
 On inverted Edwards coordinates, a tripling requires $9\mul + 4\sqr$, a doubling requires $3\mul + 4\sqr$, a general addition requires $9\mul + 1\sqr$,
 and a mixed addition requires $8\mul + 1\sqr$.
 
-Table~\ref{cmpied} displays a comparison between the previous work\cite{DKS09} and our work using cost on inverted Edwards coordinates.
+Table~\ref{cmpied} displays a comparison between the previous work\cite{DKS09},
+our analysis on interleaving signed sliding windonw,
+and our new interleaving DBNS algorithm.
+This comparison uses cost on inverted Edwards coordinates.
 Please note that these costs are calculated using mixed addition, meaning that converting all precomputation points into affine coordinates is necessary.
 The costs shown in the table already include the cost to generate precomputation points.
 However, these costs do not include the cost to perform conversion.
-Note that {\it{Tree-JBT$_5^2$, SignedSlide$_4$, and DBNS$_6$}} denote tree-based joint binary-ternary using all combinations of precompuation points,
+Note that Tree-JBT$_5^2$, SignedSlide$_4$, and DBNS$_6$ denote tree-based joint binary-ternary using all combinations of precompuation points,
 signed sliding window $\omega = 4$, and DBNS $b^{max} = 6$ respectively.
 
 The results suggest that interleaving signed sliding window $\omega = 4$ performs the best among these three algorithms.
-The interleaving DBNS $b^{max} = 6$ is competitive with tree-base joint binary-ternary.
+Our interleaving DBNS $b^{max} = 6$ is competitive with tree-base joint binary-ternary.
 Even though the DBNS is slightly faster, it requires more precomputation points.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -444,21 +447,25 @@ Method
 \multicolumn{8}{c}{}
 %\end{tabularx}
 \end{tabular}
-\caption{Comparison different method measured costs on inverted Edwards coordinates}
+\caption{Comparison different methods measured costs on inverted Edwards coordinates}
 \label{cmpied}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-Table~\ref{cmpted} presents a comparison between the previous work\cite{DKS09} and our work using cost on twisted Edwards coordinates.
+Table~\ref{cmpted} presents a comparison between the previous work\cite{DKS09},
+our analysis on interleaving signed sliding window,
+and our new interleaving DBNS algorithm.
+In contrast to previous comparison in Table~\ref{cmpied},
+this comparison  uses cost on twisted Edwards coordinates.
 Since the previous measures the cost on different coordinate system, based on data provided on their paper we converted their cost into the cost on twisted Edwards coordinates.
-In contrast to the cost displays in Table~\ref{cmpied}, the cost displays in this Table is a {\it{complete}} cost.
+In contrast to the cost displays in Table~\ref{cmpied}, the cost displays in this Table~\ref{cmpted} is a {\it{complete}} cost.
 There is no conversion into affine coordinates involved.  A regular addition is used unless mixed addition is possible.
-Note that {\it{Tree-JBT$_5^2$, SignedSlide$_4$, and DBNS$_6$}} denote tree-based joint binary-ternary using all combinations of precompuation points,
+Note that Tree-JBT$_5^2$, SignedSlide$_4$, and DBNS$_6$ denote tree-based joint binary-ternary using all combinations of precompuation points,
 signed sliding window $\omega = 4$, and DBNS $b^{max} = 6$ respectively.
 
-The results suggest that interleaving signed sliding window $\omega = 4$ performs the best among at 192-bit.
-From 256-bit and above, the interleaving DBNS $b^{max}=6$ performs the best.
+The results suggest that interleaving signed sliding window $\omega = 4$ performs the best at 192-bit.
+From 256-bit and above, our new interleaving DBNS $b^{max}=6$ performs the best.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Table
@@ -491,7 +498,7 @@ Method
 \multicolumn{8}{c}{}
 %\end{tabularx}
 \end{tabular}
-\caption{Comparison different method measured costs on twisted Edwards coordinates}
+\caption{Comparison different methods measured costs on twisted Edwards coordinates}
 \label{cmpted}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
