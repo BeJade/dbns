@@ -66,7 +66,12 @@ By the discussion in the previous paragraphs, we need to store $\Theta(\frac{\lo
 
 In this paper, we propose a DBNS-based algorithm that is in the second type, i.e. we reduce the number of pre-computation points of multi-scalar multiplication based on DBNS to a constant value. Instead of storing all coefficients of $2^i$, $d(i)$, we choose to store all coefficients of $3^j$ in this paper. We show that the computation time of the multi-scalar multiplication can be significantly improved even when $j_{\rm max}$ is as small as $5$ or $6$. Since the number of pre-computation points is $2 \cdot j_{\rm max}$, setting $j_{\rm max}$ to $5$ or $6$ makes our number of pre-computation points equals those required in double-base chain \cite{experiment,dbc1}, interleaving method \cite{interleaving}, and Shamir's trick \cite{enlarged4}.
 
-With the same number of pre-computation points, the experimental results in Section \ref{Section:Interleaving} shows that our algorithm is faster than any proposed method in literature when the size of $r$ is larger than $256$ bits. Our method is faster than the interleaving method by $???\%$, $???\%$, $???\%$, $???\%$, and $???\%$ when the number of bits is $256$, $320$, $384$, $448$, and $512$ respectively. Besides, the improvement over the tree-based double-base chain is are  $???\%$, $???\%$, $???\%$, $???\%$, and $???\%$ when the number of bits is $256$, $320$, $384$, $448$, and $512$.
+With the same number of pre-computation points, the experimental results in Section \ref{sec:interleaving}
+shows that our algorithm is faster than any proposed method in literature when the size of $r$ is larger than $256$ bits.
+Our method is faster than the interleaving method by $0.56\%$, $1.13\%$, $1.35\%$, $1.53\%$, and $1.49\%$
+when the number of bits is $256$, $320$, $384$, $448$, and $512$ respectively.
+Besides, the improvement over the tree-based double-base chain is are 
+$4.41\%$, $4.74\%$, $4.89\%$, $5.00\%$, $5.14\%$, and $4.87\%$ when the number of bits is $192$, $256$, $320$, $384$, $448$, and $512$.
 
 Suppose that the value of $j_{\rm max}$ is fixed. For the situation when we have enough time and memory to find a suitable $S_r$, we propose a dynamic programming algorithm that can find a DBNS form of $r$, $S^*_r$, of which size is smaller than any other DBNS of $r$. As discussed before, the number of point additions required for the DBNS-based method is equal to the size of DBNS form. We can reduce the computation time by reducing the size of the form using our algorithm.
 
