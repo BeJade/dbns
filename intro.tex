@@ -2,63 +2,103 @@
 
 Multi-scalar multiplication is a bottleneck operation of several public- and symmetric-key cryptographic protocols,
 including elliptic curve digital signature algorithm (ECDSA) \cite{ECDSA}.
-Given positive integers $r_1, r_2$ and points on elliptic curves $P, Q$,
-we want to compute a point $S$ where
-$$S = r_1 P + r_2 Q.$$
+Given positive integers $m, n$ and points on elliptic curves $P_1, P_2$,
+we want to compute a point $R$ where
+$$R = m P_1 + n P_2.$$
 
 There are several proposed methods to compute such operation.
-Most of those techniques are to pre-compute some elliptic points  and store them in the memory.
-In general, techniques with larger numbers of pre-computation points are usually faster than techniques with a smaller numbers of pre-computation points.
-However, we cannot use those fast techniques in a computation environment where only limited amount of memory is allowed.
+Most of those techniques are to precompute some elliptic points  and store them in a memory.
+In general, techniques with a larger number of precomputation points are usually faster than techniques with a smaller number of precomputation points.
+However, those fast techniques cannot be used in the environment where only limited amount of memory is allowed.
 
-By the number of pre-computation points, we can divide techniques proposed in literature into two types.
-The first type is techniques which the number of pre-computation points does not depend on the size of $r_1$ and $r_2$ such as Shamir’s trick \cite{Shamir},
+By the number of precomputation points, we can categorize techniques proposed in the literature into two types.
+The first type is techniques where the number of precomputation points does not depend on the size of scalars $m$ and $n$ such as Shamir’s trick \cite{Shamir},
 interleaving method \cite{interleaving}, enlarged digit set \cite{enlarged2,enlarged4,enlarged1,enlarged3}, and double-base chain (DBC) \cite{dbc2,dbc3,dbc1}.
-The second type is techniques which the number of the points grows larger when $r_1$ and $r_2$ is larger such as addition chain \cite{additionChain1,additionChain2}
+The second type is techniques where the number of the points grows larger when scalars $m$ and $n$ are getting larger such as addition chain \cite{additionChain1,additionChain2}
 and double-base number system (DBNS)  \cite{dbns}.
 
-In this paper, we will focus on the multi-scalar multiplication based on DBNS,
-the technique for a scalar multiplication, i.e., an operation to compute $S = rP$ when $r$ is a positive integer and $P$ is an elliptic point, 
-proposed by M\'eloni and Hasan in \cite{dbns}.
-In this technique, the integer $r$ is written in DBNS form $S_r \subseteq \mathbf{Z}_{\geq 0} \times \mathbf{Z}_{\geq 0}$ where
-$$\sum_{(i,j) \in S_r} 2^i 3^j = r.$$ 
-Since both $S^{(1)}_{41} = \{(2,2), (2,0), (0,0)\}$ and $S^{(2)}_{41} = \{(5,0), (0,2)\}$ are the DBNS form of 41, we know that the DBNS form of some $r$ is not unique.
+In this paper, we focus on multi-scalar multiplication using a technique which belongs to the second type.
+To be more precisely, we extended the scalar multiplication, i.e., an operation to compute $R = nP$ where $n$ is a positive integer and $P$ is an elliptic point, 
+based on DBNS proposed by M\'eloni and Hasan in \cite{dbns}.
+In their technique, an integer $n$ is written in a DBNS expansion $S_n \subseteq \mathbf{Z}_{\geq 0} \times \mathbf{Z}_{\geq 0}$ where
+$$\sum_{(i,j) \in S_n} 2^i 3^j = n.$$ 
+Since both $S^{(1)}_{41} = \{(2,2), (2,0), (0,0)\}$ and $S^{(2)}_{41} = \{(5,0), (0,2)\}$ are DBNS expansions of $41$, we know that a DBNS expansion of some $n$ is not unique.
 
-Suppose that we have a DBNS form of $r$, $S_r$. Let $i_{\rm max}$ and $j_{\rm max}$ denote $\max\{ i' : (i',j') \in S_r \}$ and $\max\{ j' : (i',j') \in S_r \}$ respectively. The method calculates and stores the value of $2^iP$ for all $i \in \{i’ : (i’, j’) \in S_r \}$ using point doubles. Then, for each $j \in \{j’ : (i’, j’) \in S_r \}$, it calculates $d(j)P$ where $d(j) := \sum\limits_{i \in \{i’ : (i',j’) \in S_r\}} 2^i $ by point additions. By those pre-computation, the point $rP$ can be obtained by
-$$rP = 3\cdot \left( \dots \left( 3 \cdot \left( 3 \cdot d(i_{\rm max})P + d(i_{\mathrm{max} - 1}P) \right) + d(i_{\mathrm{max} - 2})P \right) \dots \right) + d(0)P.$$
-For example, using $S_{41}^{(1)}$, we have $i_{\rm max} = j_{\rm max} = 2$, $d(2) = \left(2^2\right) = 4$, and $d(0) =  2^2 + 2^0 = 5$. The point $41P$ can be obtained by
-$$41P = 2 \cdot \left( 2 \cdot d(2)P  \right) + d(0)P = 3 \cdot \left( 3 \cdot \left( 4P \right)  \right) + 5P.$$
-The computation requires $j_{\rm max} - 1$ triples, $i_{\rm max} - 1$ doubles, and $|S_r| - 1$ additions. Since we have to store the points $2^iP$ for all $i \in \{i' : (i',j') \in S_r\}$, the number of the precomputation points can be as large as $|S_r|$ in the worst case.
+Suppose $S_n$ is a DBNS expansion of $n$. Let $i_{\rm max}$ and $j_{\rm max}$ denote $\max\{ i' : (i',j') \in S_n \}$ and $\max\{ j' : (i',j') \in S_n \}$ respectively.
+The method \cite{dbns} calculates and stores values $2^iP$ for all $i \in \{i : (i, j) \in S_n \}$ using point doubling.
+Then, for each $j \in \{j : (i, j) \in S_n \}$, it calculates $d(j)P$ where $d(j) := \sum\limits_{i \in \{i’ : (i',j’) \in S_n\}} 2^i $ by point addition.
+Therefore, $nP$ can be obtained by
+$$nP = 3\cdot \left( \dots \left( 3 \cdot \left( 3 \cdot d(i_{\rm max})P + d(i_{\mathrm{max} - 1}P) \right) + d(i_{\mathrm{max} - 2})P \right) \dots \right) + d(0)P.$$
+Using $S_{41}^{(1)}$ as an example, considering $i$ then points $2^0P$ and $2^2P$ are precomputed.
+Considering $j$ then $d(0) = 2^2P + 2^0P = 5P$ for $(2,0),(0,0)$ and $d(2) = 2^2P = 4P$ for $(2,2)$ are also precomputed.
+Therefore, $S_{41}^{(1)}$ can be obtained by
+$$S_{41}^{(1)} = 3 \cdot \left( 3 \cdot d(2)P  \right) + d(0)P = 3 \cdot \left( 3 \cdot \left( 4P \right)  \right) + 5P = 41P.$$
+%The computation requires $j_{\rm max} - 1$ triples, $i_{\rm max} - 1$ doubles, and $|S_n| - 1$ additions. --> No!!!
+%precomp: i_{max}-1 doublings and in worst case i_{max} additions
+%main comp: j_{max}-1 triplings and $|S_n} - 1$ additions
+Since we have to store the points $2^iP$ for all $i \in \{i : (i,j) \in S_n\}$, the number of the precomputation points can be as large as $|S_n|$ in the worst case.
 
-In \cite{dbns2}, the DBNS form of a given integer $r$ is found using a greedy algorithm. Let $\mathcal{P}_r := \left\{ 2^i3^j : i,j \in \mathbf{Z} \text{ and } 2^i3^j \leq r \right\}$. When $S^{(a)}_r$ is the DBNS form found the algorithm, the set can be described as follows:
+In \cite{dbns2}, a DBNS expansion of a given integer $n$ is obtained using a greedy algorithm.
+Let $\mathcal{P}_n := \left\{ 2^i3^j : i,j \in \mathbf{Z} \text{ and } 2^i3^j \leq n \right\}$.
+If $S^{(a)}_n$ is a DBNS expansion obtained by this algorithm,
+it can be described as follows:
 \[
-S^{(a)}_r =
+S^{(a)}_n =
 \begin{cases}
-S^{(a)}_{r - 2^{i^*}3^{j^*}} \cup \{(i^*, j^*)\} & \text{if } 2^{i^*}3^{j*} := \max \mathcal{P}_r, \\
-\emptyset       & \text{if } r = 0.
+S^{(a)}_{n - 2^{i^*}3^{j^*}} \cup \{(i^*, j^*)\} & \text{if } 2^{i^*}3^{j*} := \max \mathcal{P}_n, \\
+\emptyset       & \text{if } n = 0.
 \end{cases}
 \]
-It is proved in the paper that, for any $r \in \mathbf{Z}_+$, we have $\left|S_r^{(a)}\right| \in O(\frac{\log r}{\log \log r})$. Later, by the result in \cite{dbns3}, we know that the upper bound is already tight, i.e. $\left|S_r^{(a)}\right| \in \Theta(\frac{\log r}{\log \log r})$.
+It is proved in the paper that, for any $n \in \mathbf{Z}_+$, we have $\left|S_n^{(a)}\right| \in O(\frac{\log n}{\log \log n})$.
+Later, by the result in \cite{dbns3}, we know that the upper bound is already tight, i.e. $\left|S_n^{(a)}\right| \in \Theta(\frac{\log n}{\log \log n})$.
 
-By the discussion in the previous paragraphs, we need to store $\Theta(\frac{\log r}{\log \log r})$. That is why we categorize an algorithm in \cite{dbns} to the second type of the algorithms for the multi-scalar multiplication. In a computation environment with limited memory, we might not be able to store those $\Theta(\frac{\log r}{\log \log r})$ pre-computation points. Although a scalar multiplication method using DBNS is one of the fastest method, we cannot use the method in that situation.
+By the discussion in previous paragraphs, we need to store $\Theta(\frac{\log r}{\log \log r})$ precomputation points.
+That is why we categorize the algorithm in \cite{dbns} to the second type of algorithms for the scalar multiplication.
+In a computational environment with limited memory, we might not be able to store those $\Theta(\frac{\log r}{\log \log r})$ precomputation points.
+Although a scalar multiplication method using DBNS is one of the fastest methods, we cannot use this method in such situation.
 
 \subsection{Our Contributions}
 
-In this paper, we propose a DBNS-based algorithm that is in the second type, i.e. we reduce the number of pre-computation points of multi-scalar multiplication based on DBNS to a constant value. Instead of storing all coefficients of $2^i$, $d(i)$, we choose to store all coefficients of $3^j$ in this paper. We show that the computation time of the multi-scalar multiplication can be significantly improved even when $j_{\rm max}$ is as small as $5$ or $6$. Since the number of pre-computation points is $2 \cdot j_{\rm max}$, setting $j_{\rm max}$ to $5$ or $6$ makes our number of pre-computation points equals those required in double-base chain \cite{experiment,dbc1}, interleaving method \cite{interleaving}, and Shamir's trick \cite{enlarged4}.
+In this paper, we propose an algorithm for multi-scalar multiplication that based on DBNS representation.
+Compared to the DBNS-base scalar multiplication in \cite{dbns},
+we significantly reduce the number of precomputation points that need to be stored.
+Instead of storing all coefficients of $2^i$ and $d(j)$, we choose to store all coefficients of $3^j$.
+We show that the computational time of the multi-scalar multiplication can be improved even when $j_{\rm max}$ is as small as $5$ or $6$.
+Since the number of precomputation points is $2 \cdot j_{\rm max}$,
+setting $j_{\rm max}$ to $5$ or $6$ makes our number of precomputation points approximately the same as those required in
+double-base chain \cite{experiment,dbc1}, interleaving method \cite{interleaving}, and Shamir's trick \cite{enlarged4}.
 
-With the same number of pre-computation points, the experimental results in Section \ref{sec:interleaving}
+With the same number of precomputation points, the experimental results in Section \ref{sec:interleaving}
 shows that our algorithm is faster than any proposed method in literature when the size of $r$ is larger than $256$ bits.
 Our method is faster than the interleaving method by $0.56\%$, $1.13\%$, $1.35\%$, $1.53\%$, and $1.49\%$
 when the number of bits is $256$, $320$, $384$, $448$, and $512$ respectively.
 Besides, the improvement over the tree-based double-base chain is are 
 $4.41\%$, $4.74\%$, $4.89\%$, $5.00\%$, $5.14\%$, and $4.87\%$ when the number of bits is $192$, $256$, $320$, $384$, $448$, and $512$.
 
-Suppose that the value of $j_{\rm max}$ is fixed. For the situation when we have enough time and memory to find a suitable $S_r$, we propose a dynamic programming algorithm that can find a DBNS form of $r$, $S^*_r$, of which size is smaller than any other DBNS of $r$. As discussed before, the number of point additions required for the DBNS-based method is equal to the size of DBNS form. We can reduce the computation time by reducing the size of the form using our algorithm.
+Suppose that the value of $j_{\rm max}$ is fixed.
+For situations where we have enough time and memory to find a suitable $S_n$,
+we propose a dynamic programming algorithm that finds a DBNS expansion $S^*_n$ of $n$, of which the size is smaller than any other DBNS expansions of $n$.
+As discussed before, the number of point additions required for DBNS-based methods is equal to the size of DBNS expansion.
+Our algorithm reduces the computational time by reducing the size of the expansion.
 
-It is possible that $S^*_r$ is not a DBNS form that can optimize our computation time, since there might be a DBNS form $S'_r$ with a larger number of point additions but much smaller number of point doubles (much smaller $i_{\rm max}$). However, it can be seen that the different between the values of $i_{\rm max}$ of two different DBNS form of $r$ will not be more than $8$ or $9$, when $j_{\rm max}$ is equal to $5$ or $6$. By the fact that point doubles is not a time-consuming operation, we can say that the set $|S^*_r|$ can almost optimize the computation time of the DBNS-based multi-scalar multiplication.
+% Don't quite understand the message that this paragraph tries to convey.
+It is possible that $S^*_n$ is not a DBNS expansion that can optimize the computational time,
+since there might be a DBNS expansion $S'_r$ with a larger number of point additions but much smaller number of point doublings (much smaller $i_{\rm max}$).
+However, it can be seen that the different between values $i_{\rm max}$ of two different DBNS expansions of $n$
+will not be more than $8$ or $9$ when $j_{\rm max}$ is equal to $5$ or $6$.
+By the fact that point doubling is not a time-consuming operation,
+we can say that the set $|S^*_n|$ can almost optimize the computation time of the DBNS-based multi-scalar multiplication.
 
-We note that the time and memory consumption of our dynamic algorithm do not increase the cost of the multi-scalar multiplication. In most of cryptographic protocol, the scalars $r_1$ and $r_2$ are usually a private or public key. Generally, we perform several multi-scalar multiplications on embedded system using the same $r_1$ and $r_2$, after we generated those numbers on a personal computer. Therefore, it is reasonable to take time and memory to find the best DBNS form of $r_1$ and $r_2$ during their generation.
+In most cryptographic protocols, scalars $m$ and $n$ are usually private- or public-keys.
+Generally, we perform several multi-scalar multiplications on embedded system using the same $m$ and $m$ after those numbers are generated on a personal computer.
+Therefore, it is reasonable to spend time and memory to find the best DBNS expansion of $m$ and $n$ during the generation.
 
-Motivated by the method in \cite{analysisMethod}, we propose an analysis method that can analyze the average number of point additions in the optimal DBNS-based multi-scalar multiplication. Given the same number of pre-computation points, the analysis shows that our method requires much less point additions compared to the interleaving method with fractional windows \cite{fractional} or the enlarged digit set \cite{analysisMethod}.
+Motivated by the method in \cite{analysisMethod},
+we propose an analysis that analyzes the average number of point additions in the optimal DBNS-based multi-scalar multiplication.
+Given the same number of precomputation points, the analysis shows that our method requires much less point additions compared to
+the interleaving method with fractional windows \cite{fractional} and the enlarged digit set \cite{analysisMethod}.
 
-One might think that our algorithm is merely a double-and-add technique with a digit set $\left\{0, \pm 3^0, \pm 3^1, \dots, \pm 3^{j_{\rm max}} \right\}$. However, our method is different from that technique. In the technique, only one point addition will be performed between two sets of point doubles, while more than one point additions are allowed to perform between those two sets.
+One might think that our algorithm is merely a double-and-add with a digit set $\left\{0, \pm 3^0, \pm 3^1, \dots, \pm 3^{j_{\rm max}} \right\}$.
+However, these two algorithms are not exactly the same.
+Our algorithm allows more than one point additions to be performed between two doublings.
+while the double-and-add allows only one point addition to be performed.
