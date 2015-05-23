@@ -68,12 +68,10 @@ Since the number of precomputation points is $2 \cdot j_{\rm max}$,
 setting $j_{\rm max}$ to $5$ or $6$ makes our number of precomputation points approximately the same as those required in
 double-base chain \cite{experiment,dbc1}, interleaving method \cite{interleaving}, and Shamir's trick \cite{enlarged4}.
 
-With the same number of precomputation points, the experimental results in Section \ref{sec:interleaving}
-shows that our algorithm is faster than any proposed method in literature when the size of $r$ is larger than $256$ bits.
-Our method is faster than the interleaving method by $0.56\%$, $1.13\%$, $1.35\%$, $1.53\%$, and $1.49\%$
-when the number of bits is $256$, $320$, $384$, $448$, and $512$ respectively.
-Besides, the improvement over the tree-based double-base chain is are 
-$4.41\%$, $4.74\%$, $4.89\%$, $5.00\%$, $5.14\%$, and $4.87\%$ when the number of bits is $192$, $256$, $320$, $384$, $448$, and $512$.
+The experimental results in Section \ref{sec:interleaving} shows that our algorithm is faster than any proposed method in the literature.
+For bit size $192$, $256$, $320$, $384$, $448$, and $512$,
+our method is faster than the interleaving method by $1.5 - 2.0\%$
+and faster than the tree-based double-base chain by $5.1 - 5.3\%$.
 
 Suppose that the value of $j_{\rm max}$ is fixed.
 For situations where we have enough time and memory to find a suitable $S_n$,
