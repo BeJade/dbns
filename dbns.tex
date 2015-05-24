@@ -23,13 +23,16 @@
 \input{macros}
 
 
+\newif\ifpublic
+\publicfalse
 
 \begin{document}
 
 \titlerunning{Fast Multi-Scalar Multiplication Using DBNS }
 \title{Fast Elliptic Curve Multi-Scalar Multiplication Using DBNS} % Under Constant Number of Precomputation Points}
-\authorrunning{C. Chuengsatiansup, V. Suppakitpaisarn}
 
+\ifpublic
+\authorrunning{C. Chuengsatiansup, V. Suppakitpaisarn}
 \author{
 Chitchanok Chuengsatiansup\inst{1}\thanks{This work was supported by the Netherlands Organisation for Scientific Research (NWO) under grant 639.073.005.}
 \and
@@ -50,6 +53,7 @@ Department of Computer Science, The University of Tokyo\\
 \email{vorapong@lager.is.s.u-tokyo.ac.jp}
 }
 
+\fi
 \maketitle
 
 \begin{abstract}
