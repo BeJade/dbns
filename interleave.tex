@@ -2,7 +2,7 @@
 \label{sec:interleaving}
 To compute multi-scalar multiplication, e.g. $mP_1 + nP_2$,
 the simplest approach is to individually perform two single-scalar multiplications,
-one for $mP_1$ and one for$nP_2$, then add those results together.
+one for $mP_1$ and one for $nP_2$, then add those results together.
 If the cost for computing single-scalar multiplication using double-and-add algorithm
 for $mP_1$ is $d_1$ doublings plus $a_1$ additions and for $nP_2$ is $d_2$ doublings plus $a_2$ additions,
 it is easy to see that the total cost for computing $mP_1 + nP_2$ is $d_1 + d_2$ doublings plus $a_1 + a_2 + 1$ additions.
@@ -38,7 +38,7 @@ while the interleaving method combining constrained DBNS is suitable for number 
 The speed leading algorithm for computing single-scalar multiplication is the double-and-add with signed sliding window.
 The idea of signed sliding window is to precompute a set $S = \{1P, 3P, 5P, \dots, [2^{\omega}-1]P\}$ where $\omega$ is the window width.
 When performing double-and-add, instead of scanning one bit and perform addition,
-sliding window keep scanning bits (together with performing doubling) until non-zero bit is reach.
+sliding window keeps scanning bits (together with performing doubling) until non-zero bit is reach.
 From that non-zero bit and within the window width $\omega$, choosing the largest number and perform a single addition.
 Then repeat the process of (consecutive) doubling(s) and (single) addition until the last bit is reached.
 Note that the main advantage of this method is that it allows many bits (up to $\omega$ bits) to be added at one time.
@@ -48,7 +48,7 @@ The algorithm is very straightforward.  For example, let compute a multi-scalar 
 Similar to the interleaving method, doubling is mutually performed for both $m$ and $n$ while addition is individually performed for $m$ and $n$.
 On top of that, a number to be added is allowed to be chosen from a precompute set $S_1 = \{1P_1, 3P_1, \dots, [2^{\omega}-1]P_1\}$
 and a set $S_2 = \{1P_2, 3P_2, \dots, [2^{\omega}-1]P_2\}$.
-A selection of which number to be added is similar to the sliding window method that keep sliding and finding a number within width $\omega$ and is in the precomputation sets.
+A selection of which number to be added is similar to the sliding window method that keeps sliding and finding a number within width $\omega$ and is in the precomputation sets.
 
 Let ${\it{FindIndex}}(b,p)$ be a function performing a sliding window of width $\omega$ scanning a bit string $b$ from position $p$ to the right.
 This function returns positions $i$ and $j$ closest to $p$ where $b_i$ and $b_j$ are 1 and $b_i b_{i-1} \dots b_j$ is the largest in the precomputation set,
@@ -122,7 +122,7 @@ We used various bit range, namely, 192, 256, 320, 384, 448, and 512.
 We also tried using different window widths range from $1$ to $10$.
 The performance is measured by the number of multiplication ($N_M$) required to compute $mP_1 + nP_2$.
 To gain the best speed from both doubling and addition, we use mixed coordinate systems,
-namely, projective twisted Edwards and extend twisted Edwards with $a=-1$
+namely, projective twisted Edwards and extend twisted Edwards with $a=-1$.
 With this curve choice, a doubling takes $3\mul + 4\sqr$, a regular addition takes $8\mul$, and a mixed addition takes $7\mul$
 where $\mul$ and $\sqr$ denote field multiplication and field squaring respectively.
 See \cite{EFD} for more details on formulas.
@@ -188,29 +188,29 @@ $542788 = 2^83^7 - 2^33^7 + 2^43^3 - 2^13^3 - 2$
 \\
 
 The main advantage of DBNS over binary representation is that the number of terms in the expansion is smaller.
-However, the main drawback of DBNS is that scalar multiplication cannot be performed using Horner-like method.
+However, the main drawback of DBNS is that scalar multiplication cannot be performed using the Horner-like method.
 Therefore, the cost of doubling is at least $max(a_i)$.  Similarly, the cost of tripling is at least $max(b_i)$.
 
 In \cite{DIM05}, a restrictive DBNS called {\it{double-base chain}} (DBC) was introduced.
 Exponents $a_i$ and $b_i$ in the expansion can no long be freely chosen but have to obey the restrictions
 $a_\ell \ge a_{\ell-1)} \ge \cdots \ge a_1$ and $b_\ell \ge b_{\ell-1} \ge \cdots \ge b_1$.
 These extra conditions on the exponents increase the number of terms in the expansion.
-With these restrictions, Horner-like method can be applied to DBC when computing scalar multiplication, e.g.,
+With these restrictions, the Horner-like method can be applied to DBC when computing scalar multiplication, e.g.,
 $$[841232]P = [3]([3]([3]([2^13^3]([2^63^2]P+P)-P)-P)+P)-P.$$
-Unlike DBNS, the cost of doubling and tripling for DBC is guaranteed to be at most $max(a_i)$ and $max(b_i)$.
+Unlike DBNS, the cost of doubling and tripling for DBC are guaranteed to be at most $max(a_i)$ and $max(b_i)$.
 
-In \cite{MH09}, M\'eloni and Hasan proposed an algorithm for number represented in DBNS to perform scalar multiplication
-in which Horner-like method can still be applicable.
+In \cite{MH09}, M\'eloni and Hasan proposed an algorithm for numbers represented in DBNS to perform scalar multiplication
+in which the Horner-like method can still be applicable.
 Their idea was to precompute a set containing power of $2$ and apply the Horner-like method only on power of $3$.
-The drawback of this algorithm is that it has to store a large number amount of precomputation points.
+The drawback of this algorithm is that it has to store a large number of precomputation points.
 
-Inspired by that idea, we took a similar approach of using DBNS and try to make it applicable for Horner-like method.
+Inspired by that idea, we took a similar approach of using DBNS and try to make it applicable for the Horner-like method.
 Our approach is, instead of forcing the degree of both exponents $a_i$ and $b_i$ to be in decreasing order,
 we force only the degree of exponent $a_i$ to be in decreasing order.
 The degree of exponent $b_i$ can be in any order but must not exceed a bound $b_{max}$.
 In other words, the restriction becomes
 $a_\ell \ge a_{\ell-1} \ge \cdots \ge a_1$ (same as DBC) and $b_1,b_2,\dots,b_\ell \le b_{max}$ (different from DBC).
-This way, Horner-like method can now applied to exponent $a_i$.
+This way, the Horner-like method can now applied to exponent $a_i$.
 
 \example{Apply Horner-like method to DBNS on single exponent} \\
 \\

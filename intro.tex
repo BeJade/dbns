@@ -7,14 +7,14 @@ we want to compute a point $R$ where
 $R = m P_1 + n P_2.$
 
 There are several proposed methods to compute such operation.
-Most of those techniques are to precompute some elliptic points and store them in a memory.
+Most of those techniques precompute some elliptic points and store them in a memory.
 In general, techniques with a larger number of precomputation points are usually faster than techniques with a smaller number of precomputation points.
 However, those fast techniques cannot be used in the environment where only limited amount of memory is allowed.
 
 By the number of precomputation points, we can categorize techniques proposed in the literature into two types.
 The first type is techniques where the number of precomputation points does not depend on the size of scalars $m$ and $n$ such as Shamir’s trick \cite{Shamir},
 interleaving method \cite{interleaving}, enlarged digit set \cite{enlarged2,enlarged4,enlarged1,enlarged3}, and double-base chain (DBC) \cite{dbc2,dbc3,DKS09}.
-The second type is techniques where the number of the points grows larger when scalars $m$ and $n$ are getting larger such as addition chain \cite{additionChain1,additionChain2}
+The second type is techniques where the number of precomputation points grows larger when scalars $m$ and $n$ are getting larger such as addition chain \cite{additionChain1,additionChain2}
 and double-base number system (DBNS)  \cite{MH09}.
 
 In this paper, we focus on multi-scalar multiplication using a technique which belongs to the second type.
@@ -36,7 +36,7 @@ $$S_{41}^{(1)} = 3 \cdot \left( 3 \cdot d(2)P  \right) + d(0)P = 3 \cdot \left( 
 %The computation requires $j_{\rm max} - 1$ triples, $i_{\rm max} - 1$ doubles, and $|S_n| - 1$ additions. --> No!!!
 %precomp: i_{max}-1 doublings and in worst case i_{max} additions
 %main comp: j_{max}-1 triplings and $|S_n} - 1$ additions
-Since we have to store the points $2^iP$ for all $i \in \{i : (i,j) \in S_r\}$, the number of the precomputation points can be as large as $|S_n|$ in the worst case.
+Since we have to store the points $2^iP$ for all $i \in \{i : (i,j) \in S_r\}$, the number of the precomputation points can be as large as $|S_r|$ in the worst case.
 
 In \cite{dbns2}, a DBNS expansion of a given integer $r$ is obtained using a greedy algorithm.
 Let $\mathcal{P}_r := \left\{ 2^i3^j : i,j \in \mathbf{Z} \text{ and } 2^i3^j \leq r \right\}$.
@@ -68,7 +68,7 @@ Since the number of precomputation points is $2 \cdot j_{\rm max}$,
 setting $j_{\rm max}$ to $5$ or $6$ makes our number of precomputation points approximately the same as those required in
 double-base chain \cite{experiment,DKS09}, interleaving method \cite{interleaving}, and Shamir's trick \cite{enlarged4}.
 
-The experimental results in Section \ref{sec:interleaving} shows that our algorithm is faster than any proposed method in the literature.
+The experimental results in Section \ref{sec:interleaving} show that our algorithm is faster than any proposed method in the literature.
 For bit size $192$, $256$, $320$, $384$, $448$, and $512$,
 our method is faster than the interleaving method by $1.5 - 2.0\%$
 and faster than the tree-based double-base chain by $5.1 - 5.3\%$.
@@ -76,7 +76,7 @@ and faster than the tree-based double-base chain by $5.1 - 5.3\%$.
 Suppose that the value of $j_{\rm max}$ is fixed.
 For situations where we have enough time and memory to find a suitable $S_r$,
 we propose a dynamic programming algorithm that finds a DBNS expansion $S^*_r$ of $r$, of which the size is smaller than any other DBNS expansions of $r$.
-As discussed before, the number of point additions required for DBNS-based methods is equal to the size of DBNS expansion.
+As discussed before, the number of point additions required for DBNS-based methods is equal to the size of the DBNS expansion.
 Our algorithm reduces the computational time by reducing the size of the expansion.
 
 % Don't quite understand the message that this paragraph tries to convey.

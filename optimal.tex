@@ -52,7 +52,7 @@ We will use some of ideas in that method to propose our optimal algorithm, Algor
 	\label{dynamicAlgorithm}
 \end{algorithm}
 
-The correctness and optimality of Algorithm~\ref{dynamicAlgorithm} is proved in the following theorem. 
+The correctness and optimality of Algorithm~\ref{dynamicAlgorithm} are proved in the following theorem. 
 
 \begin{theorem}
 The set $S^*_{r,0}$ found by Algorithm~\ref{dynamicAlgorithm} is the smallest set in $\mathcal{S}_{x,I,J}$
@@ -73,7 +73,7 @@ It is easy to see that $\mathcal{S}_{x, 0, J} = \{T_x\}$ if $T_x$ exists
 and $\mathcal{S}_{x, 0, J} = \emptyset$ if $T_x$ does not exist.
 Hence, $S_{x, I}^* = T_x$ assigned in Line 3 is the smallest set in $\mathcal{S}_{x, 0, J}$  and $W_{x, I}^* = |T_x|$.
 
-For $i < I$, we will select $S^*_{x,i}$ from the set $S^*_{x, I - i, J}$.
+For $i < I$, we select $S^*_{x,i}$ from the set $S^*_{x, I - i, J}$.
 This is equivalent to writing $x$ in the form $\sum_{i = 0}^{I - i} d(i) 2^i$
 for some $d(0), \dots, d(I - i)$ or $2 \left( \sum_{i = 0}^{I - i - 1} d(i + 1) 2^i \right) + d(0)$.
 When $d(0)$ is fixed, we know that the best choice for $d(1), \dots, d(I - i)$ is the sequence that is corresponding to the smallest set in
