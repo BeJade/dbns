@@ -26,7 +26,7 @@ We will use some of ideas in that method to propose our optimal algorithm, Algor
 \begin{algorithm}
 	\caption{Finding the shortest double-base chain for a given scalar}
 	\begin{algorithmic}
-		\Require A scalar $r$, a parameter $I, J$
+		\Require A scalar $r$ and parameters $I, J$
 		\Ensure A set $S_r^* \in \mathcal{S}_{r,I,J}$ such that, for any $S_r \in \mathcal{S}_{r,I,J}$, $|S^*_r| \leq |S_r|$. 
 		\Statex
 		\State $C \leftarrow \{c \in \mathbf{Z} : -\frac{3^{J + 1} - 1}{2} \leq c \leq  \frac{3^{J + 1} - 1}{2}\}$.
@@ -157,29 +157,26 @@ That is the average number of additions per bits when the number of bits is sign
 
 In~\cite{analysisMethod}, the general framework for finding the average Hamming density is proposed.
 By that framework, our density compared to the fractional window method~\cite{fractional} and enlarged digit set~\cite{enlarged4} is shown in Table~\ref{optimalTable}.
-Although the results when the number of precomputation points is larger than $8$ is still on-going due to the limitation of our computation environment,
-the table shows that our algorithm significantly improve the previous works when $\#P \geq 4$.
-Our average Hamming density for $\#P = 8$ is even smaller than the value for $\#P = 10$ in both methods.
+%Although the results when the number of precomputation points is larger than $8$ is still on-going due to the limitation of our computation environment,
+%the table shows that our algorithm significantly improves the previous works when $\#P \geq 4$.
+The table shows that our algorithm significantly improves the previous works when $\#P \geq 4$.
+%Our average Hamming density for $\#P = 8$ is even smaller than the value for $\#P = 10$ in both methods.
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|L{0.2\textwidth}|*6{C{0.12\textwidth}|} }
-%\begin{tabularx}{\textwidth}{|X| *6{X X|}}
+\begin{tabular}{|L{0.2\textwidth}|*5{C{0.12\textwidth}|} }
 \toprule
-%\hline
 Method
 	&$\#P = 0$
 		&$\#P = 2$
 			&$\#P = 4$
 				&$\#P = 6$
-					&$\#P = 8$
-						&$\#P = 10$\\
+					&$\#P = 8$ \\
+%						&$\#P = 10$\\
 \midrule
 \input{table_optimal}
-%\hrule
 \bottomrule
-\multicolumn{6}{c}{}
-%\end{tabularx}
+\multicolumn{5}{c}{}
 \end{tabular}
 \caption{Comparison different methods measured average Hamming density}
 \label{optimalTable}
