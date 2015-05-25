@@ -1,6 +1,62 @@
 \section{Optimal Algorithm}
 
-add text here
+In Subsection \ref{dynamic}, we will give a dynamic programming algorithm that can find a DBNS forms of $r_1$ and $r_2$ that minimize the number of additions of the interleaving DBNS discussed in the previous section. As discussed in the subsection, the computation time obtained from the result of algorithm is almost equal to the optimal DBNS form. The algorithm will be theoretically analyzed in Subsection \ref{analysis}. The analysis results show that our optimal technique significantly improve techniques in previous works.
 
-\subheading{This is subheading}
-add more text
+\subsection{Dynamic Programming Algorithm}
+\label{dynamic}
+
+Assume that the maximum number of point doubles $I$ and the maximum number of point triples $J$ are given. Let 
+$$\mathcal{S}_{r, I, J} := \{S_r \subseteq \mathcal{S} : v(S_r) = r, M_i (S_r) \leq I \text{ and } M_j (S_r) \leq J \},$$
+where $\mathcal{S} := \{-1, 1\} \times \mathbf{Z}_{\geq 0} \times \mathbf{Z}_{\geq 0}$, $v(S_r) = \sum\limits_{(s,i,j) \in S_r} s\cdot 2^i 3^j$, $M_i = \max \{i : (i,j) \in S_r\}$, and $M_j = \max \{j : (i,j) \in S_r\}$.
+Our goal in this subsection is to find $S_r^* \in \mathcal{S}_{r, I, J}$ such that, for any $S_r \in \mathcal{S}_{r, I, J}$, $\left| S_r^* \right| \leq \left| S_r \right|$.
+
+Let $w$ be a function from $\mathbf{Z}$ to $\mathbf{Z}_{\geq 0}$ such that
+\[
+w(x) =
+\begin{cases}
+0 & \text{if } x = 0, \\
+w\left(\frac{x}{3}\right) & \text{if } x \equiv 0 \bmod 3,\\
+w \left(\frac{x - 1}{3} \right) + 1 & \text{if } x \equiv 1 \bmod 3,\\
+w \left(\frac{x + 1}{3} \right) + 1 & \text{if } x \equiv 2 \bmod 3.
+\end{cases}
+\]
+For each integer $x$, it is known that there exists only one $T_x \subset \{-1,1\} \times \mathbf{Z}$ such that $\sum\limits_{(s,j) \in T_x} s \cdot 3^j = x$. We have $w(x) = |T_x|$, i.e. the function $w$ will return the number of terms when $x$ is rewritten as a summation of $3^i$.
+
+In \cite{analysisMethod}, a dynamic programming algorithm for optimizing the number of point additions in fractional windows method has been proposed. We will use some of ideas in that method to propose our dynamic programming algorithm. Our algorithm is shown in Algorithm \ref{dynamicAlgorithm}.
+
+\begin{algorithm}
+	\caption{Finding the shortest double-base chain for a given scalar}
+	\begin{algorithmic}
+		\Require A scalar $r={(r_{\ell_1},\dots,r_1,r_0)}_2$,
+		A parameter $I, J$
+		\Ensure A set $S_r^* \in \mathcal{S}_{r,I,J}$ such that, for any $S_r \in \mathcal{S}_{r,I,J}$, $|S^*_r| \leq |S_r|$. 
+		\Statex
+		\State $W_x^* = w(x)$ and $S_x^* = T_x$ for all $x \in \left\{ \frac{r}{2^I} + c : |c| \leq \frac{3^J - 1}{2} \right\}$
+		
+		
+		\State $(i_1,j_1)$ $\gets$ $FindIndex(m,\ell_1)$		\Comment{$FindIndex(b,p)$ returns ($i,j$)}
+		\State $(i_2,j_2)$ $\gets$ $FindIndex(n,\ell_2)$		\Comment{where $p {\ge} i {\ge} j, i{-}j {\le} \omega$ and $b_i{,}b_j {=} 1$}
+		\If{$j_1 > j_2$} \State $k \gets j_1$
+		\Else \State $k \gets j_2$
+		\EndIf
+		\While {$k > 0$}
+		\State $R$ $\gets$ $[2]R$
+		\If {$k = j_1$}
+		\State Set $u$ $\gets$ ${(m_{i_1},\dots,m_{j_1+1},m_{j_1})}_2$
+		\State $R$ $\gets$ $R + [u]P_1$		\Comment{$[u]P_1$ obtained from set $S_1$}
+		\State $(i_1,j_1)$ $\gets$ $FindIndex(m,j_1{-}1)$
+		\EndIf
+		\If {$k = j_2$}
+		\State Set $u$ $\gets$ ${(n_{i_2},\dots,n_{j_2+1},n_{j_2})}_2$
+		\State $R$ $\gets$ $R + [u]P_2$		\Comment{$[u]P_2$ obtained from set $S_2$}
+		\State $(i_2,j_2)$ $\gets$ $FindIndex(n,j_2{-}1)$
+		\EndIf
+		\State $k$ $\gets$ $k - 1$
+		\EndWhile
+		\\ \Return $[m]P_1 + [n]P_2$
+	\end{algorithmic}
+	\label{dynamicAlgorithm}
+\end{algorithm}
+
+\subsection{Analysis}
+\label{analysis}
