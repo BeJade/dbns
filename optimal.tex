@@ -1,62 +1,119 @@
 \section{Optimal Algorithm}
 
-In Subsection \ref{dynamic}, we will give a dynamic programming algorithm that can find a DBNS forms of $r_1$ and $r_2$ that minimize the number of additions of the interleaving DBNS discussed in the previous section. As discussed in the subsection, the computation time obtained from the result of algorithm is almost equal to the optimal DBNS form. The algorithm will be theoretically analyzed in Subsection \ref{analysis}. The analysis results show that our optimal technique significantly improve techniques in previous works.
+In Subsection \ref{dynamic}, we will give a dynamic programming algorithm that can find a DBNS forms of $m$ and $n$ that minimize the number of additions of the interleaving DBNS discussed in the previous section. As discussed in the subsection, the computation time obtained from the result of algorithm is almost equal to the optimal DBNS form. The algorithm will be theoretically analyzed in Subsection \ref{analysis}. The analysis results show that our optimal technique significantly improve techniques in previous works.
 
 \subsection{Dynamic Programming Algorithm}
 \label{dynamic}
 
-Assume that the maximum number of point doubles $I$ and the maximum number of point triples $J$ are given. Let 
-$$\mathcal{S}_{r, I, J} := \{S_r \subseteq \mathcal{S} : v(S_r) = r, M_i (S_r) \leq I \text{ and } M_j (S_r) \leq J \},$$
-where $\mathcal{S} := \{-1, 1\} \times \mathbf{Z}_{\geq 0} \times \mathbf{Z}_{\geq 0}$, $v(S_r) = \sum\limits_{(s,i,j) \in S_r} s\cdot 2^i 3^j$, $M_i = \max \{i : (i,j) \in S_r\}$, and $M_j = \max \{j : (i,j) \in S_r\}$.
-Our goal in this subsection is to find $S_r^* \in \mathcal{S}_{r, I, J}$ such that, for any $S_r \in \mathcal{S}_{r, I, J}$, $\left| S_r^* \right| \leq \left| S_r \right|$.
+Recall that the maximum number of point doubles $I$ and the maximum number of point triples $J$ are given. Let 
+$$\mathcal{S}_{r, I, J} := \{S_r \subseteq \{-1,1\} \times \{0, 1, \dots, I\} \times \{0, 1, \dots, J\} : v(S_r) = r\},$$
+where $v(S_r) = \sum\limits_{(s,i,j) \in S_r} s\cdot 2^i 3^j$. We will assume that $I,J$ is large enough to have $\mathcal{S}_{r,I,J} \neq \emptyset$.
+Our goal in this subsection is to find $S_r^* \in \mathcal{S}_{r, I, J}$ such that, for any $S_r \in \mathcal{S}_{r, I, J}$, $\left| S_r^* \right| \leq \left| S_r \right|$. 
 
-Let $w$ be a function from $\mathbf{Z}$ to $\mathbf{Z}_{\geq 0}$ such that
-\[
-w(x) =
-\begin{cases}
-0 & \text{if } x = 0, \\
-w\left(\frac{x}{3}\right) & \text{if } x \equiv 0 \bmod 3,\\
-w \left(\frac{x - 1}{3} \right) + 1 & \text{if } x \equiv 1 \bmod 3,\\
-w \left(\frac{x + 1}{3} \right) + 1 & \text{if } x \equiv 2 \bmod 3.
-\end{cases}
-\]
-For each integer $x$, it is known that there exists only one $T_x \subset \{-1,1\} \times \mathbf{Z}$ such that $\sum\limits_{(s,j) \in T_x} s \cdot 3^j = x$. We have $w(x) = |T_x|$, i.e. the function $w$ will return the number of terms when $x$ is rewritten as a summation of $3^i$.
+For each integer $x$, it is known that there exists at most one $T_x \subset \{-1,1\} \times \{0\} \times \{0, 1, \dots, J\}$ such that $\sum\limits_{(s,0,j) \in T_x} s \cdot 3^j = x$. Let $w$ be a function from $\mathbf{Z}$ to $\mathbf{Z}_{\geq 0} \cup \{\infty\}$ such that $w(x) = |T_x|$ when $T_x$ exists, and $w(x) = \infty$ otherwise. 
+For example, when $J \geq 3$, we have $T_{15} = \{(1, 0, 3), (-1, 0, 2), (-1, 0, 1)\}$ and $w(15) = 3$, since $15 = 3^3 - 3^2 - 3^1$. 
 
-In \cite{analysisMethod}, a dynamic programming algorithm for optimizing the number of point additions in fractional windows method has been proposed. We will use some of ideas in that method to propose our dynamic programming algorithm. Our algorithm is shown in Algorithm \ref{dynamicAlgorithm}.
+In \cite{analysisMethod}, a dynamic programming algorithm for optimizing the number of point additions in fractional windows method has been proposed. We will use some of ideas in that method to propose our optimal algorithm, Algorithm~\ref{dynamicAlgorithm}. 
 
 \begin{algorithm}
 	\caption{Finding the shortest double-base chain for a given scalar}
 	\begin{algorithmic}
-		\Require A scalar $r={(r_{\ell_1},\dots,r_1,r_0)}_2$,
-		A parameter $I, J$
+		\Require A scalar $r$, a parameter $I, J$
 		\Ensure A set $S_r^* \in \mathcal{S}_{r,I,J}$ such that, for any $S_r \in \mathcal{S}_{r,I,J}$, $|S^*_r| \leq |S_r|$. 
 		\Statex
-		\State $W_x^* = w(x)$ and $S_x^* = T_x$ for all $x \in \left\{ \frac{r}{2^I} + c : |c| \leq \frac{3^J - 1}{2} \right\}$
+		\State $C \leftarrow \{c \in \mathbf{Z} : -\frac{3^{J + 1} - 1}{2} \leq c \leq  \frac{3^{J + 1} - 1}{2}\}$.
+		\State For all $x \in \left\{ \lfloor \frac{r}{2^I} \rfloor + c  : c \in C\right\} \cup C$ , calculate $T_x$ and $w(x)$.
+		\Comment $T_x$ is a ternary representation of $x$
+		 
+		\State For all $x \in \left\{ \lfloor \frac{r}{2^I} \rfloor + c  : c \in C\right\}$, $W_{x,I}^* \leftarrow w(x)$ and $S_{x,I}^* \leftarrow T_x$. 
+		\Comment formally defined in Subsection~\ref{dynamic},
+				
+		\For {$i = I - 1$ down to $0$} \Comment and $w(x) = |T_x|$.
+			\ForAll { $c \in C$ }
+				\State $x \leftarrow \lfloor \frac{r}{2^i} \rfloor + c$.
+				\State $d^* \leftarrow \arg \min\limits_{d \in C : d \equiv x \bmod 2} \left[ W^*_{\frac{x - d}{2}, i + 1 } + w(d) \right]$. 
+				\State $S_{x,i}^* \leftarrow \left\{(s,i + 1,j) : (s,i,j) \in S^*_{\frac{x - d^*}{2}, i + 1 } \right\} \cup T_{d^*}$.
+				\Comment $S_{x,i}^*$ is the smallest set in $\mathcal{S}_{x, I - i, J}$ 
+				\State $W_{x,i}^* \leftarrow |S_{x,i}^*|$
+				\Comment $W_{x,i}^* = |S_{x,i}^*|$
+			\EndFor
+		\EndFor
 		
-		
-		\State $(i_1,j_1)$ $\gets$ $FindIndex(m,\ell_1)$		\Comment{$FindIndex(b,p)$ returns ($i,j$)}
-		\State $(i_2,j_2)$ $\gets$ $FindIndex(n,\ell_2)$		\Comment{where $p {\ge} i {\ge} j, i{-}j {\le} \omega$ and $b_i{,}b_j {=} 1$}
-		\If{$j_1 > j_2$} \State $k \gets j_1$
-		\Else \State $k \gets j_2$
-		\EndIf
-		\While {$k > 0$}
-		\State $R$ $\gets$ $[2]R$
-		\If {$k = j_1$}
-		\State Set $u$ $\gets$ ${(m_{i_1},\dots,m_{j_1+1},m_{j_1})}_2$
-		\State $R$ $\gets$ $R + [u]P_1$		\Comment{$[u]P_1$ obtained from set $S_1$}
-		\State $(i_1,j_1)$ $\gets$ $FindIndex(m,j_1{-}1)$
-		\EndIf
-		\If {$k = j_2$}
-		\State Set $u$ $\gets$ ${(n_{i_2},\dots,n_{j_2+1},n_{j_2})}_2$
-		\State $R$ $\gets$ $R + [u]P_2$		\Comment{$[u]P_2$ obtained from set $S_2$}
-		\State $(i_2,j_2)$ $\gets$ $FindIndex(n,j_2{-}1)$
-		\EndIf
-		\State $k$ $\gets$ $k - 1$
-		\EndWhile
-		\\ \Return $[m]P_1 + [n]P_2$
+		\\ \Return $S_{r,0}^*$
 	\end{algorithmic}
 	\label{dynamicAlgorithm}
 \end{algorithm}
 
+The correctness and optimality of Algorithm~\ref{dynamicAlgorithm} is proved in the following theorem. 
+
+\begin{theorem}
+The set $S^*_{r,0}$ found by Algorithm~\ref{dynamicAlgorithm} is the smallest set in $\mathcal{S}_{x,I,J}$
+\end{theorem}
+
+\begin{proof}
+We will prove this theorem by showing that all $S^*_{x,i}$ found by the algorithm is the smallest set in $\mathcal{S}_{x, I - i, J}$.
+
+We know that all members of $\mathcal{S}_{r, I, J}$ can be written in the form of $\sum\limits_{i = 0}^I \left(\sum\limits_{j = 0}^J s(i,j) \cdot 3^j\right) 2^i$ for some $s(i,j) \in \{0, \pm 1\}$. Let $d(i) = \sum\limits_{j = 0}^J s(i,j) \cdot 3^j$. We have $\sum\limits_{i = 0}^I \left(\sum\limits_{j = 0}^J s(i,j) \cdot 3^j\right) 2^i = \sum\limits_{i = 0}^I d(i) 2^i$ and  $-\frac{3^{J + 1} - 1}{2} \leq d(i) \leq \frac{3^{J + 1} - 1}{2}$. Instead of finding the optimal DBNS, we find $d(0), d(1), \dots, d(I)$ that optimize the number of point additions, which is $\sum_{i = 0}^I w(d(i))$.
+
+The set $C$ represents all possible values of $d(i)$. At Line 2, we calculate $T_x$ and $w(x)$ for each member of $C$. It is easy to see that, if $\mathcal{S}_{x, 0, J} = \{T_x\}$ when $T_x$ exists, and $\mathcal{S}_{x, 0, J} = \emptyset$ if $T_x$ does not exist. Hence, it is easy to see that $S_{x, I}^* = T_x$ assigned in Line 3 is the smallest set in $\mathcal{S}_{x, 0, J}$, and $W_{x, I}^* = |T_x|$.
+
+For $i < I$, we will select $S^*_{x,i}$ from the set $S^*_{x, I - i, J}$. This is equivalent to writing $x$ in the form $\sum_{i = 0}^{I - i} d(i) 2^i$ for some $d(0), \dots, d(I - i)$, or $2 \left( \sum_{i = 0}^{I - i - 1} d(i + 1) 2^i \right) + d(0)$. When $d(0)$ is fixed, we know that the best choice for $d(1), \dots, d(I - i)$ is the sequence that is corresponding to the smallest set is $\mathcal{S}_{\frac{x - d(0)}{2}, I - i - 1, J}$, $S^*_{\frac{x - d(0)}{2}, i + 1}$. Therefore, our task is to find a value $d(0) \in C$ that minimizes $\left|S^*_{\frac{x - d(0)}{2}, i + 1}\right| + \left|T_{d(0)}\right|$. That is $d^*$ in our algorithm. The set $S^*_{x,i}$ in Line 8 is corresponding to best $d(0), \dots, d(I - i)$ obtained from the idea in this paragraph.
+
+For all $d(0) \in C$, we have $\lfloor \frac{x}{2} \rfloor - \frac{3^{J + 1} - 1}{2} \leq \frac{x - d(0)}{2} \leq \lfloor \frac{x}{2} \rfloor + \frac{3^{J + 1} - 1}{2}$. Hence, all $S^*_{\frac{x - d(0)}{2}, i + 1}$ referred at Step $i$ are computed at Step $i + 1$. \qed
+\end{proof}  
+
+\begin{example} Find $S^*_{15} \in \mathcal{S}_{15, 2, 1}$ such that for any $S_r \in \mathcal{S}_{15, 2, 1}$, $|S^*_r| \leq |S_r|$. 
+
+ Since $J = 1$, $C = \{0, \pm 1, \pm 2, \pm 3, \pm 4\}$, $T_0 = \emptyset$, $T_1 = \{(1,0,0)\}$, $T_2 =\{(-1,0,0), (1,0,1)\}$, $T_3 = \{(1,0,1)\}$, $T_4 = \{(1,0,0),(1,0,1)\}$, $T_{-x} = \{(-d, i, j) : (d, i, j) \in T_x\}$, $w(0) = 0$, $w(1) = w(3) = w(-1) = w(-3) = 1$, and $w(2) = w(4) = w(-2) = w(-4) = 2$. We also calculate $T_x$ and $w(x)$ for each $x \in \{ \lfloor \frac{r}{2^I} \rfloor + c : c \in C \} = \{ -1, 0, 1, \dots, 7 \}$ in Line 2. We know from the calculation that $T_5, T_6$, and $T_7$ do not exist, and $w(5) = w(6) = w(7) = \infty$.
+
+In the first iteration of the loop in Algorithm~\ref{dynamicAlgorithm}, $i = I - 1 = 1$. We have $\lfloor \frac{r}{2^1} \rfloor = 7$. When $c = 0$, $x = 7$,  $W^*_{(7 - (-3)) / 2,2} + w(-3) = w(5) + w(-3) = \infty$, $W^*_{(7 - (-1)) / 2,2} + w(-1) = w(4) + w(1) = 3$, $W^*_{(7 - 1) / 2,2} + w(1) = w(3) + w(1) = 2$, and $W^*_{(7-3)/2, 2} + w(3) = w(2) + w(3) = 3$. By that, the value of $d^*$ is $1$, $S^*_{7, 1} \leftarrow \left\{(s,i+1,j) : (s,i,j) \in S^*_{(7-1) / 2, 2}\right\} \cup T_1 = \{ (1,1,1) \} \cup \{ (1,0,0)\} = \{ (1,1,1), (1,0,0) \}$. In the same iteration, we also calculate $S^*_{x,1}$ and $W^*_{x,1}$ for all $x \in \{ 3, 4, \dots, 11 \}$.
+
+In the second iteration, we calculate $S^*_{x,0}$ and $W^*_{x,0}$ for all $x \in \{ 11, \dots, 19 \}$. Let us show the calculation for $S^*_{15,0}$. Since we have $W^*_{(15 - (-3)) / 2,1} + w(-3) = 2 + 1 = 3$, $W^*_{(15 - (-1)) / 2,1} + w(-1) = 2 + 1 = 3$, $W^*_{(15 - 1) / 2,1} + w(1) = 2 + 1 = 3$, and $W^*_{(15-3)/2, 2} + w(3) = 1 + 1 = 2$. The value of $d^*$ is equal to $3$. $S^*_{15,0} = \left\{(s,i+1,j) : (s,i,j) \in S^*_{(15-1) / 2, 1}\right\} \cup T_3 = \{(1,2,1)\} \cup \{(1,0,1)\} = \{(1,2,1), (1,0,1)\}$. \qed
+\end{example}
+
+To optimize the number of additions for the calculation of $mP_1 + nP_2$ using the interleaving DBNS in the previous section, we can compute $S_m^*$ and $S_n^*$ independently by Algorithm~\ref{dynamicAlgorithm}. Then, we will replace the $\{2,3\}$-DBNS obtained from Algorithm~\ref{interleaveDBNSChainAlgo} by
+$$chain^* := \left\{ (a,b,0,d) : (d, a, b) \in S_m^* \right\} \cup \left\{ (a,b,c,0) : (c, a, b) \in S_n^* \right\}$$
+in the calculation of the multi-scalar multiplication.
+
+The smallest set in $\mathcal{S}_{r, I, J}$, $S^*_r$, might not lead us to the fastest interleaving DBNS. For each $S_r \in \mathcal{S}_{r, I, J}$, we need $|S_r|$ point additions, $M_i(S^*_r) := \max \{i : (i,j) \in S_r\}$ point doublings, and $M_j(S^*_r) := \max \{i : (i,j) \in S_r\}$ point triplings.
+There might be a set $S'_r \in \mathcal{S}_{r, I, J}$ of which $|S'_r| = |S^*_r|$, but $M_i(S'_r) < M_i(S^*_r)$ or $M_j(S'_r) < M_j(S^*_r)$. However, it can be seen that, for any $S_r, S_r' \in \mathcal{S}_{r, I, J}$, $|M_i(S_r) - M_i(S'_r)| \leq 2 \cdot J$ and $|M_j(S_r) - M_j(S'_r)| \leq J$. As a doubling and a tripling are usually much faster than an addition, we can say that a computation using $S^*_r$ is almost the fastest among all $S_r$ in $\mathcal{S}_{r,I,J}$ when $J$ is small.
+
+Although Algorithm~\ref{dynamicAlgorithm} potentially leads to a faster multi-scalar multiplication than Algorithm~\ref{interleaveDBNSChainAlgo}, the computation time of the algorithm is clearly larger than the algorithm in the previous section. 
+When the value of $J$ is equal to $7$, the size of $C$ is $6781$. We have to calculate the value of $S^*_{x,i}$ for different $6781I$ values. However, in most cryptographic protocols, scalars $m$ and $n$ are usually private- or public-keys.
+We perform several multi-scalar multiplications on embedded system using the same $m$ and $m$ after those numbers are generated on a personal computer. 
+Since it is reasonable to spend time and memory for finding the best DBNS in the computation environment, we believe that Algorithm~\ref{dynamicAlgorithm} can be useful for those practical situations. Besides, we found that the running time of Algorithm~\ref{dynamicAlgorithm} is not larger than $3$ seconds, for all $r \leq 2^{256}$, $I \leq 256$, and $J \leq 6$. By an argument in~\cite{experiment}, we strongly believe that $3$ seconds is not too long in many applications.
+
 \subsection{Analysis}
 \label{analysis}
+
+Beside the experimental results, one of ways to evaluate a multi-scalar multiplication that is commonly used in literature is \textit{average Hamming density}. The average joint Hamming density of a method $\mathcal{A}$ can be described as follows:
+$$AJD_\mathcal{A} := \lim\limits_{l \rightarrow \infty} \sum_{m = 0}^{2^l - 1} \sum_{n = 0}^{2^l - 1} \frac{\text{\#Additions for } mP_1 + nP_1}{l \cdot 2^{2l}}.$$
+That is the average number of additions per bits when the number of bits is significantly large. 
+
+In~\cite{analysisMethod}, the general framework for finding the average Hamming density is proposed. By the framework, our density, compared with the fractional windows method~\cite{fractional} and enlarged digit set~\cite{enlarged4} is shown in the following table. Although the results when the number of precomputation points is larger than $8$ is still on-going due to the limitation of our computation environment, the table shows that our algorithm can significantly improve the previous works when $\#P \geq 4$. Our average Hamming density for $\#P = 8$ is even smaller than the value for $\#P = 10$ in both methods.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|L{0.2\textwidth}|*6{C{0.12\textwidth}|} }
+%\begin{tabularx}{\textwidth}{|X| *6{X X|}}
+\toprule
+%\hline
+Method
+	&$\#P = 0$
+		&$\#P = 2$
+			&$\#P = 4$
+				&$\#P = 6$
+					&$\#P = 8$
+						&$\#P = 10$\\
+\midrule
+\input{table_optimal}
+%\hrule
+\bottomrule
+\multicolumn{6}{c}{}
+%\end{tabularx}
+\end{tabular}
+\caption{Comparison different methods measured average Hamming density}
+\label{cmpied}
+\end{table}
+
+Beside the analysis on the average Hamming density, our experimental results can also prove that the dynamic programming algorithm performs better than any methods in literature. The average number of point multiplications are $1865$, $2439$, $3012$, $3585$, $4157$, and $4731$ when the number of bits in the inverted Edwards coordinates are $192$, $256$, $320$, $384$, $448$, and $512$. That improves the best method in literature, the tree-based JBT~\cite{DKS09}, by $1.35 - 2.78\%$, and improves our greedy algorithm by up to $2.17\%$. For the twisted Edwards coordinates, our average number of point multiplications are $1835$, $2397$, $2955$, $3512$, $4069$, and $4626$. The results are better than the best method in literature, the interleaving method, by $0.17\% - 3.04\%$, and are better than our greedy algorithm by up to $1.09\%$.
